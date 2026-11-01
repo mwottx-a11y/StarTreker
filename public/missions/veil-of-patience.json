@@ -1,0 +1,2477 @@
+{
+ "id": "veil-of-patience",
+ "episode": 2,
+ "title": "Patience of Stone",
+ "stardate": "4431.6",
+ "synopsis": "A freighter drifts dark in the Veil Nebula, broadcasting a distress loop and guarded by its own automated gun. One life sign aboard. Or so the sensors say. (External mission module: loaded from public/missions at runtime.)",
+ "maxScore": 65,
+ "hints": [
+  "Cargo manifests are a form of fiction, Rowan. Read them as such.",
+  "Never ask an ensign to \"just give it a whack.\"",
+  "Allies are not always right. Debts are sometimes useful."
+ ],
+ "characters": {
+  "tamsin": {
+   "name": "Captain Tamsin Reyes",
+   "short": "Reyes",
+   "color": 15773824,
+   "look": {
+    "skin": "#c89070",
+    "hair": "#2a1a14",
+    "hairStyle": "short",
+    "uniform": "#6a5040",
+    "trim": "#3a2a20",
+    "pants": "#2a2420",
+    "features": [
+     "scar"
+    ],
+    "bg": "#2a2018"
+   }
+  },
+  "vael": {
+   "name": "Commander Ister Vael",
+   "short": "Vael",
+   "color": 13676799,
+   "look": {
+    "skin": "#c8b0e0",
+    "hair": "#c8b0e0",
+    "hairStyle": "bald",
+    "uniform": "#2a2a3a",
+    "trim": "#c8a040",
+    "features": [
+     "ridges",
+     "markings"
+    ],
+    "markColor": "#f0d060",
+    "eyes": "#402060",
+    "bg": "#1a1028"
+   }
+  },
+  "patience": {
+   "name": "PATIENCE (freighter AI)",
+   "short": "Patience",
+   "color": 16760928,
+   "portrait": false
+  }
+ },
+ "items": {
+  "fuse": {
+   "name": "Power coupling",
+   "icon": "fuse",
+   "color": "#e0a040",
+   "desc": "A heavy-duty auxiliary power coupling. Freighter spare parts: bulky, ugly, indestructible."
+  },
+  "datapad": {
+   "name": "Cargo manifest",
+   "icon": "datapad",
+   "color": "#60c0e0",
+   "desc": "Manifest: \"Agricultural equipment, 41 units. Destination: Ossa Free Port.\" Someone has written in the margin, very small: \"God keep them.\""
+  }
+ },
+ "briefing": {
+  "speaker": "thorne",
+  "lines": [
+   "Rowan. A freighter called the Patience of Stone has been broadcasting a distress loop from inside the Veil Nebula for two days. Independent registry, no flight plan on file.",
+   "The Tellarch Compact has also asked us to keep an eye out for it. They say it's stolen. The Compact are signatories to the Kessel Accords, so officially, that request matters.",
+   "Unofficially, I'd like to know why the Compact cares so much about one small freighter. Find it. Help whoever's aboard. Thorne out."
+  ]
+ },
+ "bridge": {
+  "onStart": [
+   {
+    "objective": "Locate the freighter Patience of Stone in the Veil Nebula",
+    "id": "find"
+   },
+   {
+    "if": {
+     "memory": "choir_restored"
+    },
+    "then": [
+     {
+      "say": "venn",
+      "text": "Captain - before we go. A message arrived from Kepos IV. Dr. Halvorsen says the Choir has started \"humming back\" when the children sing. He thought you would want to know."
+     }
+    ]
+   },
+   {
+    "if": {
+     "memory": "destroyed_choir"
+    },
+    "then": [
+     {
+      "say": "venn",
+      "text": "Kepos IV reports the last of the colonists have been discharged. Eleven did not recover."
+     },
+     {
+      "say": "okafor",
+      "text": "...Let's go do some good, Captain."
+     }
+    ]
+   }
+  ]
+ },
+ "crewTalk": {
+  "okafor": [
+   {
+    "if": "found_refugees",
+    "do": [
+     {
+      "say": "okafor",
+      "text": "Forty-one people in boxes, Rowan. Whatever the Compact says, I know what I'm looking at."
+     }
+    ]
+   }
+  ],
+  "venn": [
+   {
+    "if": "found_refugees",
+    "do": [
+     {
+      "say": "venn",
+      "text": "The Kessel Accords oblige us to return stolen property. The Concord Charter forbids us from returning refugees to persecution. Both documents are very confident."
+     }
+    ]
+   }
+  ]
+ },
+ "starmap": {
+  "start": "sb9",
+  "systems": {
+   "sb9": {
+    "name": "Starbase Concord-9",
+    "x": 30,
+    "y": 70,
+    "color": "#80c0ff",
+    "desc": "Sector command.",
+    "view": {
+     "station": true,
+     "planet": {
+      "size": 64,
+      "base": "#4a6a3a",
+      "accent": "#8aa070",
+      "scale": 1.4
+     }
+    }
+   },
+   "kepos": {
+    "name": "Kepos IV",
+    "x": 210,
+    "y": 78,
+    "color": "#e090c0",
+    "desc": "The Halvorsen Institute colony.",
+    "view": {
+     "planet": {
+      "size": 96,
+      "base": "#5a2a5a",
+      "accent": "#a05a90",
+      "bands": 6,
+      "seed": 77
+     }
+    },
+    "hail": [
+     {
+      "if": {
+       "memory": "choir_restored"
+      },
+      "then": [
+       {
+        "say": "halvorsen",
+        "text": "Captain Hale! Mira says hello. And the mountain says... well. It hums. Happily, we think."
+       }
+      ],
+      "else": [
+       {
+        "say": "arun",
+        "text": "The colony acknowledges, Captain. Quietly."
+       }
+      ]
+     }
+    ]
+   },
+   "veil": {
+    "name": "Veil Nebula",
+    "x": 140,
+    "y": 30,
+    "color": "#60e0a0",
+    "desc": "Ionised gas cloud. Sensors unreliable. Smugglers love it.",
+    "view": {
+     "planet": {
+      "size": 48,
+      "base": "#2a5a4a",
+      "accent": "#5a9a7a",
+      "bands": 2,
+      "scale": 1
+     },
+     "ship": {
+      "style": "freighter",
+      "scale": 1.3
+     }
+    },
+    "onFirstArrive": [
+     {
+      "alert": "red"
+     },
+     {
+      "say": "sato",
+      "text": "Contact. The Patience of Stone, dead ahead, drifting. Main power is down."
+     },
+     {
+      "say": "daska",
+      "text": "Sir - there's an automated gun platform bolted to her hull. It just locked onto us."
+     },
+     {
+      "say": "arun",
+      "text": "Their distress loop is still running. And something on board wants to talk to us."
+     },
+     {
+      "complete": "find"
+     },
+     {
+      "objective": "Get aboard the Patience of Stone",
+      "id": "board"
+     }
+    ],
+    "scan": [
+     {
+      "sfx": "scan"
+     },
+     {
+      "say": "venn",
+      "text": "One human life sign aboard, in stasis, on failing reserve power. And... forty-one further readings, very faint. Something is masking them."
+     },
+     {
+      "say": "venn",
+      "text": "The gun platform is a Kessler-pattern pirate deterrent. Crude. Its targeting array recalibrates every nine seconds; during recalibration it is blind."
+     },
+     {
+      "set": "scanned_drone"
+     },
+     {
+      "score": 5,
+      "reason": "Analysed the deterrent drone"
+     }
+    ],
+    "hail": [
+     {
+      "say": "patience",
+      "text": "GREETINGS. THIS IS PATIENCE, AUTOMATED STEWARD OF THE PATIENCE OF STONE. THIS VESSEL IS UNDER QUARANTINE."
+     },
+     {
+      "say": "patience",
+      "text": "APPROACH WILL BE TREATED AS HOSTILE. I APOLOGISE IN ADVANCE FOR SHOOTING YOU. PLEASE HAVE A PATIENT DAY."
+     },
+     {
+      "say": "okafor",
+      "text": "Polite, isn't it."
+     }
+    ],
+    "tactical": [
+     {
+      "if": {
+       "any": [
+        "drone_down",
+        "drone_bypassed"
+       ]
+      },
+      "then": [
+       {
+        "say": "daska",
+        "text": "Nothing left to shoot at, sir. Which is how I like it."
+       }
+      ],
+      "else": [
+       {
+        "say": "daska",
+        "text": "I can take out the drone, sir. It might take some of the freighter's hull with it."
+       },
+       {
+        "choice": [
+         {
+          "text": "Do it.",
+          "do": [
+           {
+            "combat": "drone"
+           }
+          ]
+         },
+         {
+          "text": "Belay that.",
+          "do": []
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "stations": {
+     "engineering": [
+      {
+       "if": {
+        "not": {
+         "any": [
+          "drone_down",
+          "drone_bypassed"
+         ]
+        }
+       },
+       "do": [
+        {
+         "say": "brandt",
+         "text": "If you're thinking of beaming over there with that gun watching, Captain - I could time a transport for a gap in its targeting. If I knew when the gaps were."
+        },
+        {
+         "if": "scanned_drone",
+         "then": [
+          {
+           "say": "venn",
+           "text": "Nine-second cycle, Chief. I will feed you the timing."
+          },
+          {
+           "choice": [
+            {
+             "text": "Do it. Thread the needle, Chief.",
+             "do": [
+              {
+               "say": "brandt",
+               "text": "Ha! Right. On my mark... mark."
+              },
+              {
+               "set": "drone_bypassed"
+              },
+              {
+               "score": 8,
+               "reason": "Slipped past the drone without firing a shot"
+              },
+              {
+               "complete": "board"
+              },
+              {
+               "sfx": "transporter"
+              },
+              {
+               "beamDown": "hold",
+               "at": [
+                160,
+                136
+               ]
+              }
+             ]
+            },
+            {
+             "text": "Not yet.",
+             "do": []
+            }
+           ]
+          }
+         ],
+         "else": [
+          {
+           "say": "brandt",
+           "text": "Ask Commander Venn to have a look at the thing."
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "orbit": {
+     "beamDown": "hold",
+     "at": [
+      160,
+      136
+     ],
+     "if": {
+      "any": [
+       "drone_down",
+       "drone_bypassed"
+      ]
+     },
+     "before": [
+      {
+       "complete": "board"
+      }
+     ],
+     "blocked": [
+      {
+       "say": "venn",
+       "text": "The drone would target us the moment we lowered shields to transport, Captain."
+      }
+     ]
+    }
+   }
+  }
+ },
+ "encounters": {
+  "drone": {
+   "background": {
+    "planet": {
+     "base": "#2a5a4a",
+     "accent": "#5a9a7a",
+     "bands": 2,
+     "seed": 5
+    }
+   },
+   "enemies": [
+    {
+     "name": "Deterrent drone",
+     "style": "drone",
+     "hull": 70,
+     "shields": 30,
+     "damage": 10,
+     "fireRate": 1.8,
+     "speed": 90,
+     "skill": 0.5
+    }
+   ],
+   "onStart": [
+    {
+     "say": "patience",
+     "text": "I DID WARN YOU. DEFENSIVE MEASURES ENGAGED. NOTHING PERSONAL."
+    }
+   ],
+   "hail": [
+    {
+     "say": "patience",
+     "text": "I AM NOT AUTHORISED TO NEGOTIATE. I AM ONLY AUTHORISED TO BE SORRY."
+    }
+   ],
+   "onVictory": [
+    {
+     "say": "daska",
+     "text": "Drone neutralised, sir."
+    },
+    {
+     "set": "drone_down"
+    },
+    {
+     "score": 3,
+     "reason": "Neutralised the deterrent drone"
+    },
+    {
+     "alert": null
+    }
+   ],
+   "onDefeat": [
+    {
+     "end": "lost"
+    }
+   ]
+  },
+  "patrol": {
+   "background": {
+    "planet": {
+     "base": "#2a5a4a",
+     "accent": "#5a9a7a",
+     "bands": 2,
+     "seed": 5
+    }
+   },
+   "enemies": [
+    {
+     "name": "Compact cutter Tessaract",
+     "style": "raider",
+     "color": "#5a4a8a",
+     "hull": 90,
+     "shields": 70,
+     "damage": 12,
+     "fireRate": 2,
+     "speed": 130,
+     "skill": 0.7
+    }
+   ],
+   "surrenderAt": 50,
+   "onStart": [
+    {
+     "say": "vael",
+     "text": "You have chosen this, Captain. Remember that."
+    }
+   ],
+   "onSurrender": [
+    {
+     "say": "vael",
+     "text": "Enough. The Compact will settle this through diplomatic channels. You may keep your... refugees."
+    },
+    {
+     "endCombat": "spared",
+     "then": [
+      {
+       "end": "defiance"
+      }
+     ]
+    }
+   ],
+   "onVictory": [
+    {
+     "end": "defiance"
+    }
+   ],
+   "onDefeat": [
+    {
+     "end": "lost"
+    }
+   ],
+   "onRetreat": [
+    {
+     "end": "accord"
+    }
+   ],
+   "canRetreat": true
+  }
+ },
+ "scripts": {
+  "vaelArrives": [
+   {
+    "wait": 400
+   },
+   {
+    "alert": "red"
+   },
+   {
+    "sfx": "chirp"
+   },
+   {
+    "say": "arun",
+    "text": "Captain - a Tellarch Compact patrol cutter just dropped out of the nebula. They're hailing. Commander Vael, Compact Border Authority."
+   },
+   {
+    "dialogue": "vael"
+   }
+  ]
+ },
+ "dialogues": {
+  "patience": {
+   "start": "n1",
+   "nodes": {
+    "n1": {
+     "say": "patience",
+     "text": "HELLO. YOU ARE INSIDE ME. THIS IS ACCEPTABLE, SINCE YOU HAVE NOT YET HURT ANYONE. HOW MAY I ASSIST?",
+     "next": "menu"
+    },
+    "menu": {
+     "choices": [
+      {
+       "text": "Who is aboard this ship?",
+       "once": true,
+       "goto": "who"
+      },
+      {
+       "text": "What happened to you?",
+       "once": true,
+       "goto": "what"
+      },
+      {
+       "text": "Why did you fire on us?",
+       "once": true,
+       "goto": "why"
+      },
+      {
+       "text": "Thank you, Patience.",
+       "goto": "bye"
+      }
+     ]
+    },
+    "who": {
+     "lines": [
+      [
+       "patience",
+       "CAPTAIN TAMSIN REYES. ALSO FORTY-ONE UNITS OF AGRICULTURAL EQUIPMENT."
+      ],
+      [
+       "patience",
+       "THE AGRICULTURAL EQUIPMENT IS VERY WELL BEHAVED. IT SLEEPS A GREAT DEAL. ONE OF THEM IS SIX."
+      ]
+     ],
+     "next": "menu"
+    },
+    "what": {
+     "lines": [
+      [
+       "patience",
+       "WE STRUCK A GRAVITIC MINE IN THE NEBULA. THE CAPTAIN PLACED HERSELF IN STASIS TO SAVE AIR. SHE INSTRUCTED ME TO PROTECT THE CARGO UNTIL HELP ARRIVED."
+      ],
+      [
+       "patience",
+       "SHE ALSO INSTRUCTED ME THAT TELLARCH SHIPS ARE NOT HELP."
+      ]
+     ],
+     "do": [
+      {
+       "score": 3,
+       "reason": "Gained PATIENCE's trust"
+      }
+     ],
+     "next": "menu"
+    },
+    "why": {
+     "say": "patience",
+     "text": "I CANNOT TELL A RESCUER FROM A RETRIEVER AT A DISTANCE. I CAN AT CLOSE RANGE. YOU ARE A RESCUER. PROBABLY. PLEASE DO NOT DISAPPOINT ME.",
+     "next": "menu"
+    },
+    "bye": {
+     "say": "patience",
+     "text": "YOU ARE WELCOME. PLEASE MIND THE GAP BETWEEN THE LADDER AND THE DECK."
+    }
+   }
+  },
+  "tamsin": {
+   "start": "n1",
+   "nodes": {
+    "n1": {
+     "lines": [
+      [
+       null,
+       "The pod hisses open. A woman in a battered freighter jacket coughs, blinks at the four uniforms, and grabs for a weapon that isn't there."
+      ],
+      [
+       "tamsin",
+       "Concord. Oh, thank God. Not Compact. ...You ARE Concord?"
+      ]
+     ],
+     "next": "menu"
+    },
+    "menu": {
+     "choices": [
+      {
+       "text": "Captain Hale, CES Meridian. You're safe, Captain Reyes.",
+       "once": true,
+       "goto": "safe"
+      },
+      {
+       "text": "Who is in those crates?",
+       "goto": "crates",
+       "if": "found_refugees"
+      },
+      {
+       "text": "The Tellarch Compact says this ship is stolen.",
+       "once": true,
+       "goto": "stolen"
+      },
+      {
+       "text": "Rest. We'll talk on the Meridian.",
+       "goto": "done"
+      }
+     ]
+    },
+    "safe": {
+     "say": "tamsin",
+     "text": "Safe. Right. I'll believe that when my passengers are somewhere the Compact can't reach.",
+     "next": "menu"
+    },
+    "crates": {
+     "lines": [
+      [
+       "tamsin",
+       "Ilvari. Families, mostly. The Compact calls it resettlement. They put them in camps on the Tessar moons, and a lot of them don't come back out."
+      ],
+      [
+       "tamsin",
+       "I was taking them to Ossa Free Port. They can claim asylum there. Or - they could claim it with you."
+      ]
+     ],
+     "do": [
+      {
+       "score": 5,
+       "reason": "Heard Captain Reyes out"
+      }
+     ],
+     "next": "menu"
+    },
+    "stolen": {
+     "say": "tamsin",
+     "text": "It's MY ship. Bought it with my mother's pension. What they mean is I stole forty-one of their prisoners.",
+     "next": "menu"
+    },
+    "done": {
+     "say": "tamsin",
+     "text": "Don't leave them here. Please.",
+     "do": [
+      {
+       "complete": "tamsin"
+      },
+      {
+       "say": "captain",
+       "text": "Hale to Meridian. Beam Captain Reyes directly to sickbay. The rest of us are coming up."
+      },
+      {
+       "sfx": "transporter"
+      },
+      {
+       "beamUp": true,
+       "then": [
+        {
+         "run": "vaelArrives"
+        }
+       ]
+      }
+     ]
+    }
+   }
+  },
+  "vael": {
+   "start": "n1",
+   "nodes": {
+    "n1": {
+     "say": "vael",
+     "text": "Captain Hale. The Tellarch Compact thanks you for locating the stolen vessel. Under the Kessel Accords, you will transfer it, its pilot, and its cargo to my custody.",
+     "next": "menu"
+    },
+    "menu": {
+     "choices": [
+      {
+       "text": "Its \"cargo\" is forty-one people, Commander.",
+       "if": "found_refugees",
+       "goto": "people"
+      },
+      {
+       "text": "I need to consult Sector Command first.",
+       "once": true,
+       "goto": "thorne"
+      },
+      {
+       "text": "Understood. Prepare to receive the freighter.",
+       "goto": "handover"
+      }
+     ]
+    },
+    "thorne": {
+     "lines": [
+      [
+       "thorne",
+       "Rowan. I've read your sensor logs. The Accords are real, and the Compact is an ally we need."
+      ],
+      [
+       "thorne",
+       "But the Charter is real too. You're the captain on the scene. Make the call - I'll back you. Within reason."
+      ]
+     ],
+     "next": "menu"
+    },
+    "people": {
+     "say": "vael",
+     "text": "Ilvari separatists. Fugitives from lawful resettlement. Their status is an internal Compact matter, and none of yours.",
+     "choices": [
+      {
+       "text": "Captain Reyes' log records a forty-percent death rate in your camps. Under the Concord Charter they may request asylum. Captain Reyes - do they?",
+       "if": "read_log",
+       "goto": "asylum"
+      },
+      {
+       "text": "Commander, I'm afraid the freighter was just seized by Varr raiders. Terribly sorry. They seem to have left.",
+       "if": {
+        "memory": "kesh_owes_us"
+       },
+       "goto": "favor"
+      },
+      {
+       "text": "They're not going anywhere with you.",
+       "if": {
+        "not": "read_log"
+       },
+       "goto": "standoff"
+      },
+      {
+       "text": "Then they're your concern. Prepare to receive the freighter.",
+       "goto": "handover"
+      }
+     ]
+    },
+    "asylum": {
+     "lines": [
+      [
+       "tamsin",
+       "They do. Every one of them. I'll put my name first on the list if it helps."
+      ],
+      [
+       "vael",
+       "...You understand what this does to the Accords, Captain."
+      ],
+      [
+       "captain",
+       "I understand what the alternative does to forty-one people."
+      ],
+      [
+       "vael",
+       "The Compact will lodge a formal protest. Vael out."
+      ]
+     ],
+     "do": [
+      {
+       "score": 20,
+       "reason": "Granted the Ilvari refugees asylum, on the record"
+      },
+      {
+       "remember": "ilvari_asylum"
+      },
+      {
+       "end": "asylum"
+      }
+     ]
+    },
+    "favor": {
+     "lines": [
+      [
+       null,
+       "At a quiet signal from Lt. Arun, a battered Varr corsair slides out of the nebula, latches a tractor beam onto the Patience of Stone, and vanishes back into the gas."
+      ],
+      [
+       "kesh",
+       "(on a private channel) A debt is a debt, Concord. Varr-Tesh will see them to Ossa. Nobody searches a Varr hold twice."
+      ],
+      [
+       "vael",
+       "Varr raiders. In the Veil. How... convenient."
+      ],
+      [
+       "vael",
+       "I cannot prove anything, Captain Hale. I will remember that I cannot."
+      ]
+     ],
+     "do": [
+      {
+       "score": 20,
+       "reason": "Called in a debt from Clan Varr-Tesh"
+      },
+      {
+       "remember": "kesh_debt_paid"
+      },
+      {
+       "end": "favor"
+      }
+     ]
+    },
+    "standoff": {
+     "lines": [
+      [
+       "vael",
+       "Then you leave me no choice. Compact vessel Tessaract to battle stations."
+      ],
+      [
+       "venn",
+       "Captain, we have no documentation to justify this. The Compact will see it as an act of war."
+      ]
+     ],
+     "do": [
+      {
+       "combat": "patrol"
+      }
+     ]
+    },
+    "handover": {
+     "lines": [
+      [
+       "vael",
+       "The Compact appreciates your cooperation, Captain."
+      ],
+      [
+       "okafor",
+       "(quietly) I hope you can sleep tonight, Rowan. I'm not sure I will."
+      ]
+     ],
+     "do": [
+      {
+       "score": 5,
+       "reason": "Upheld the Kessel Accords"
+      },
+      {
+       "end": "accord"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "rooms": {
+  "hold": {
+   "name": "Patience of Stone - Cargo Hold",
+   "paint": [
+    {
+     "type": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 150,
+     "c": "#121418"
+    },
+    {
+     "type": "gradient",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 106,
+     "from": "#1a1e26",
+     "to": "#262a34"
+    },
+    {
+     "type": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 6,
+     "h": 106,
+     "c": "#2e3440"
+    },
+    {
+     "type": "rect",
+     "x": 40,
+     "y": 0,
+     "w": 6,
+     "h": 106,
+     "c": "#2e3440"
+    },
+    {
+     "type": "rect",
+     "x": 80,
+     "y": 0,
+     "w": 6,
+     "h": 106,
+     "c": "#2e3440"
+    },
+    {
+     "type": "rect",
+     "x": 120,
+     "y": 0,
+     "w": 6,
+     "h": 106,
+     "c": "#2e3440"
+    },
+    {
+     "type": "rect",
+     "x": 160,
+     "y": 0,
+     "w": 6,
+     "h": 106,
+     "c": "#2e3440"
+    },
+    {
+     "type": "rect",
+     "x": 200,
+     "y": 0,
+     "w": 6,
+     "h": 106,
+     "c": "#2e3440"
+    },
+    {
+     "type": "rect",
+     "x": 240,
+     "y": 0,
+     "w": 6,
+     "h": 106,
+     "c": "#2e3440"
+    },
+    {
+     "type": "rect",
+     "x": 280,
+     "y": 0,
+     "w": 6,
+     "h": 106,
+     "c": "#2e3440"
+    },
+    {
+     "type": "rect",
+     "x": 320,
+     "y": 0,
+     "w": 6,
+     "h": 106,
+     "c": "#2e3440"
+    },
+    {
+     "type": "rect",
+     "x": 0,
+     "y": 8,
+     "w": 320,
+     "h": 4,
+     "c": "#3a4250"
+    },
+    {
+     "type": "rect",
+     "x": 0,
+     "y": 16,
+     "w": 320,
+     "h": 2,
+     "c": "#2a303a"
+    },
+    {
+     "type": "glow",
+     "x": 20,
+     "y": 10,
+     "r": 10,
+     "c": "#ff3020",
+     "strength": 0.45
+    },
+    {
+     "type": "glow",
+     "x": 100,
+     "y": 10,
+     "r": 10,
+     "c": "#ff3020",
+     "strength": 0.45
+    },
+    {
+     "type": "glow",
+     "x": 180,
+     "y": 10,
+     "r": 10,
+     "c": "#ff3020",
+     "strength": 0.45
+    },
+    {
+     "type": "glow",
+     "x": 260,
+     "y": 10,
+     "r": 10,
+     "c": "#ff3020",
+     "strength": 0.45
+    },
+    {
+     "type": "rect",
+     "x": 17,
+     "y": 8,
+     "w": 6,
+     "h": 4,
+     "c": "#ff4030"
+    },
+    {
+     "type": "rect",
+     "x": 97,
+     "y": 8,
+     "w": 6,
+     "h": 4,
+     "c": "#ff4030"
+    },
+    {
+     "type": "rect",
+     "x": 177,
+     "y": 8,
+     "w": 6,
+     "h": 4,
+     "c": "#ff4030"
+    },
+    {
+     "type": "rect",
+     "x": 257,
+     "y": 8,
+     "w": 6,
+     "h": 4,
+     "c": "#ff4030"
+    },
+    {
+     "type": "rect",
+     "x": 44,
+     "y": 46,
+     "w": 26,
+     "h": 58,
+     "c": "#3a4048"
+    },
+    {
+     "type": "rect",
+     "x": 46,
+     "y": 48,
+     "w": 22,
+     "h": 54,
+     "c": "#262a32"
+    },
+    {
+     "type": "rect",
+     "x": 49,
+     "y": 54,
+     "w": 16,
+     "h": 34,
+     "c": "#1a2a3a"
+    },
+    {
+     "type": "rect",
+     "x": 49,
+     "y": 54,
+     "w": 16,
+     "h": 3,
+     "c": "#2a3a4a"
+    },
+    {
+     "type": "rect",
+     "x": 52,
+     "y": 92,
+     "w": 10,
+     "h": 4,
+     "c": "#402020"
+    },
+    {
+     "type": "rect",
+     "x": 76,
+     "y": 46,
+     "w": 26,
+     "h": 58,
+     "c": "#3a4048"
+    },
+    {
+     "type": "rect",
+     "x": 78,
+     "y": 48,
+     "w": 22,
+     "h": 54,
+     "c": "#262a32"
+    },
+    {
+     "type": "rect",
+     "x": 81,
+     "y": 54,
+     "w": 16,
+     "h": 34,
+     "c": "#1a2a3a"
+    },
+    {
+     "type": "rect",
+     "x": 81,
+     "y": 54,
+     "w": 16,
+     "h": 3,
+     "c": "#2a3a4a"
+    },
+    {
+     "type": "rect",
+     "x": 84,
+     "y": 92,
+     "w": 10,
+     "h": 4,
+     "c": "#402020"
+    },
+    {
+     "type": "rect",
+     "x": 150,
+     "y": 46,
+     "w": 26,
+     "h": 58,
+     "c": "#3a4048"
+    },
+    {
+     "type": "rect",
+     "x": 152,
+     "y": 48,
+     "w": 22,
+     "h": 54,
+     "c": "#262a32"
+    },
+    {
+     "type": "rect",
+     "x": 155,
+     "y": 54,
+     "w": 16,
+     "h": 34,
+     "c": "#1a2a3a"
+    },
+    {
+     "type": "rect",
+     "x": 155,
+     "y": 54,
+     "w": 16,
+     "h": 3,
+     "c": "#2a3a4a"
+    },
+    {
+     "type": "rect",
+     "x": 158,
+     "y": 92,
+     "w": 10,
+     "h": 4,
+     "c": "#402020"
+    },
+    {
+     "type": "rect",
+     "x": 182,
+     "y": 46,
+     "w": 26,
+     "h": 58,
+     "c": "#3a4048"
+    },
+    {
+     "type": "rect",
+     "x": 184,
+     "y": 48,
+     "w": 22,
+     "h": 54,
+     "c": "#262a32"
+    },
+    {
+     "type": "rect",
+     "x": 187,
+     "y": 54,
+     "w": 16,
+     "h": 34,
+     "c": "#4a90e0"
+    },
+    {
+     "type": "rect",
+     "x": 187,
+     "y": 54,
+     "w": 16,
+     "h": 3,
+     "c": "#a0d0ff"
+    },
+    {
+     "type": "rect",
+     "x": 190,
+     "y": 92,
+     "w": 10,
+     "h": 4,
+     "c": "#40e060"
+    },
+    {
+     "type": "rect",
+     "x": 214,
+     "y": 46,
+     "w": 26,
+     "h": 58,
+     "c": "#3a4048"
+    },
+    {
+     "type": "rect",
+     "x": 216,
+     "y": 48,
+     "w": 22,
+     "h": 54,
+     "c": "#262a32"
+    },
+    {
+     "type": "rect",
+     "x": 219,
+     "y": 54,
+     "w": 16,
+     "h": 34,
+     "c": "#1a2a3a"
+    },
+    {
+     "type": "rect",
+     "x": 219,
+     "y": 54,
+     "w": 16,
+     "h": 3,
+     "c": "#2a3a4a"
+    },
+    {
+     "type": "rect",
+     "x": 222,
+     "y": 92,
+     "w": 10,
+     "h": 4,
+     "c": "#402020"
+    },
+    {
+     "type": "glow",
+     "x": 195,
+     "y": 70,
+     "r": 18,
+     "c": "#60a0ff",
+     "strength": 0.35
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 18,
+     "w": 2,
+     "h": 88,
+     "c": "#7a808a"
+    },
+    {
+     "type": "rect",
+     "x": 132,
+     "y": 18,
+     "w": 2,
+     "h": 88,
+     "c": "#7a808a"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 22,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 30,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 38,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 46,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 54,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 62,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 70,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 78,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 86,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 94,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 118,
+     "y": 102,
+     "w": 16,
+     "h": 2,
+     "c": "#6a7078"
+    },
+    {
+     "type": "rect",
+     "x": 112,
+     "y": 14,
+     "w": 28,
+     "h": 6,
+     "c": "#4a5260"
+    },
+    {
+     "type": "rect",
+     "x": 10,
+     "y": 58,
+     "w": 22,
+     "h": 24,
+     "c": "#4a4a3a"
+    },
+    {
+     "type": "rect",
+     "x": 12,
+     "y": 60,
+     "w": 18,
+     "h": 20,
+     "c": "#2a2a22"
+    },
+    {
+     "type": "rect",
+     "x": 14,
+     "y": 64,
+     "w": 6,
+     "h": 4,
+     "c": "#ff6020"
+    },
+    {
+     "type": "rect",
+     "x": 22,
+     "y": 70,
+     "w": 6,
+     "h": 6,
+     "c": "#202020"
+    },
+    {
+     "type": "rect",
+     "x": 0,
+     "y": 104,
+     "w": 320,
+     "h": 3,
+     "c": "#4a5260"
+    },
+    {
+     "type": "gradient",
+     "x": 0,
+     "y": 107,
+     "w": 320,
+     "h": 43,
+     "from": "#2a2e36",
+     "to": "#1a1c22"
+    },
+    {
+     "type": "line",
+     "x1": 0,
+     "y1": 107,
+     "x2": -20,
+     "y2": 150,
+     "c": "#22262e"
+    },
+    {
+     "type": "line",
+     "x1": 46,
+     "y1": 107,
+     "x2": 32,
+     "y2": 150,
+     "c": "#22262e"
+    },
+    {
+     "type": "line",
+     "x1": 92,
+     "y1": 107,
+     "x2": 84,
+     "y2": 150,
+     "c": "#22262e"
+    },
+    {
+     "type": "line",
+     "x1": 138,
+     "y1": 107,
+     "x2": 136,
+     "y2": 150,
+     "c": "#22262e"
+    },
+    {
+     "type": "line",
+     "x1": 184,
+     "y1": 107,
+     "x2": 188,
+     "y2": 150,
+     "c": "#22262e"
+    },
+    {
+     "type": "line",
+     "x1": 230,
+     "y1": 107,
+     "x2": 240,
+     "y2": 150,
+     "c": "#22262e"
+    },
+    {
+     "type": "line",
+     "x1": 276,
+     "y1": 107,
+     "x2": 292,
+     "y2": 150,
+     "c": "#22262e"
+    },
+    {
+     "type": "line",
+     "x1": 322,
+     "y1": 107,
+     "x2": 344,
+     "y2": 150,
+     "c": "#22262e"
+    },
+    {
+     "type": "rect",
+     "x": 248,
+     "y": 82,
+     "w": 34,
+     "h": 26,
+     "c": "#6a5a3a"
+    },
+    {
+     "type": "rect",
+     "x": 250,
+     "y": 84,
+     "w": 30,
+     "h": 2,
+     "c": "#8a7a5a"
+    },
+    {
+     "type": "rect",
+     "x": 284,
+     "y": 74,
+     "w": 30,
+     "h": 34,
+     "c": "#5a4a30"
+    },
+    {
+     "type": "rect",
+     "x": 286,
+     "y": 76,
+     "w": 26,
+     "h": 2,
+     "c": "#7a6a4a"
+    },
+    {
+     "type": "rect",
+     "x": 262,
+     "y": 56,
+     "w": 30,
+     "h": 26,
+     "c": "#6a5a3a"
+    },
+    {
+     "type": "rect",
+     "x": 264,
+     "y": 58,
+     "w": 26,
+     "h": 2,
+     "c": "#8a7a5a"
+    },
+    {
+     "type": "rect",
+     "x": 254,
+     "y": 92,
+     "w": 22,
+     "h": 4,
+     "c": "#c0a040"
+    },
+    {
+     "type": "rect",
+     "x": 290,
+     "y": 88,
+     "w": 18,
+     "h": 4,
+     "c": "#c0a040"
+    },
+    {
+     "type": "rect",
+     "x": 268,
+     "y": 66,
+     "w": 18,
+     "h": 4,
+     "c": "#c0a040"
+    },
+    {
+     "type": "rect",
+     "x": 86,
+     "y": 130,
+     "w": 10,
+     "h": 6,
+     "c": "#404858"
+    },
+    {
+     "type": "rect",
+     "x": 87,
+     "y": 131,
+     "w": 8,
+     "h": 3,
+     "c": "#60c0e0"
+    }
+   ],
+   "walk": {
+    "poly": [
+     [
+      0,
+      112
+     ],
+     [
+      320,
+      112
+     ],
+     [
+      320,
+      148
+     ],
+     [
+      0,
+      148
+     ]
+    ]
+   },
+   "scale": [
+    106,
+    0.86,
+    148,
+    1.05
+   ],
+   "drone": [
+    "C2",
+    "G2"
+   ],
+   "droneVol": 0.03,
+   "onFirstEnter": [
+    {
+     "wait": 300
+    },
+    {
+     "narrate": "Emergency lighting. Cold, recycled air. Somewhere, a pump is labouring and losing."
+    },
+    {
+     "say": "patience",
+     "text": "WELCOME ABOARD. LIFE SUPPORT RESERVES: FOUR PERCENT. I WOULD RECOMMEND HURRYING. POLITELY."
+    },
+    {
+     "objective": "Restore auxiliary power",
+     "id": "power"
+    }
+   ],
+   "hotspots": [
+    {
+     "id": "pod",
+     "name": "Active stasis pod",
+     "rect": [
+      182,
+      46,
+      26,
+      58
+     ],
+     "walkTo": [
+      195,
+      118
+     ],
+     "faceDir": "up",
+     "look": "A stasis pod, lit and humming. Through the frosted glass: a woman in a freighter captain's jacket.",
+     "venn": "Captain Reyes, presumably. The stasis field is degrading. Hours, not days.",
+     "okafor": {
+      "cases": [
+       {
+        "if": "tamsin_awake",
+        "do": "She's awake and complaining. Excellent signs, both."
+       },
+       {
+        "if": "power_on",
+        "do": [
+         {
+          "say": "okafor",
+          "text": "Power's stable. I can bring her out now."
+         },
+         {
+          "sfx": "scan"
+         },
+         {
+          "set": "tamsin_awake"
+         },
+         {
+          "score": 7,
+          "reason": "Safely revived Captain Reyes"
+         },
+         {
+          "dialogue": "tamsin"
+         }
+        ]
+       },
+       {
+        "if": true,
+        "do": "On this power, opening the pod could stop her heart. Get me stable power first, Captain."
+       }
+      ]
+     },
+     "talk": {
+      "cases": [
+       {
+        "if": "tamsin_awake",
+        "do": [
+         {
+          "dialogue": "tamsin",
+          "node": "menu"
+         }
+        ]
+       },
+       {
+        "if": true,
+        "do": "She's in stasis."
+       }
+      ]
+     },
+     "use": "Better leave that to Dr. Okafor."
+    },
+    {
+     "id": "pods",
+     "name": "Stasis pods",
+     "rect": [
+      44,
+      46,
+      58,
+      58
+     ],
+     "look": "Stasis pods, dark and cold. Each is stencilled EMPTY.",
+     "venn": "Genuinely empty. But I am reading residual bio-signs elsewhere in this hold."
+    },
+    {
+     "id": "pods2",
+     "name": "Stasis pods",
+     "rect": [
+      150,
+      46,
+      30,
+      58
+     ],
+     "look": "A dark, empty pod."
+    },
+    {
+     "id": "pods3",
+     "name": "Stasis pods",
+     "rect": [
+      214,
+      46,
+      26,
+      58
+     ],
+     "look": "A dark, empty pod."
+    },
+    {
+     "id": "crates",
+     "name": "Cargo crates",
+     "rect": [
+      248,
+      54,
+      68,
+      54
+     ],
+     "look": "Crates stencilled AGRICULTURAL MACHINERY - THIS WAY UP.",
+     "venn": [
+      {
+       "say": "venn",
+       "text": "Agricultural machinery does not usually have heartbeats, Captain. Forty-one of them. Each crate is a concealed stasis unit."
+      },
+      {
+       "set": "found_refugees"
+      },
+      {
+       "score": 5,
+       "reason": "Discovered the hidden passengers"
+      },
+      {
+       "objective": "Find out who the hidden passengers are",
+       "id": "who"
+      }
+     ],
+     "okafor": {
+      "cases": [
+       {
+        "if": "found_refugees",
+        "do": "Forty-one people, including children. Their units are on the same failing power as the captain's."
+       },
+       {
+        "if": true,
+        "do": "Crates, Captain. I'm a doctor, not a quartermaster."
+       }
+      ]
+     },
+     "daska": "Hidden seams on the panels, sir. Smuggler's work. Good smuggler's work.",
+     "use": "Sealed tight."
+    },
+    {
+     "id": "junction",
+     "name": "Power junction",
+     "rect": [
+      10,
+      56,
+      24,
+      28
+     ],
+     "walkTo": [
+      24,
+      116
+     ],
+     "faceDir": "left",
+     "look": {
+      "cases": [
+       {
+        "if": "power_on",
+        "do": "The junction hums happily."
+       },
+       {
+        "if": true,
+        "do": "An auxiliary power junction. The main coupling is blackened and split."
+       }
+      ]
+     },
+     "venn": "The coupling has burned out. A freighter this size would keep spares - probably in an emergency locker on the bridge.",
+     "use": [
+      {
+       "sfx": "hit"
+      },
+      {
+       "narrate": "Sparks spit from the junction. You decide not to do that again."
+      }
+     ],
+     "daska": {
+      "cases": [
+       {
+        "if": "power_on",
+        "do": "It's working now, sir. I'm not touching it."
+       },
+       {
+        "if": true,
+        "do": [
+         {
+          "say": "daska",
+          "text": "I'll just give it a whack, sir - sometimes that -"
+         },
+         {
+          "sfx": "hit"
+         },
+         {
+          "flash": "#a0d0ff",
+          "ms": 200
+         },
+         {
+          "injure": "daska"
+         },
+         {
+          "set": "daska_was_hurt"
+         },
+         {
+          "say": "okafor",
+          "text": "Sometimes that WHAT, Ensign? Sometimes that electrocutes you?"
+         }
+        ]
+       }
+      ]
+     },
+     "items": {
+      "fuse": [
+       {
+        "take": "fuse"
+       },
+       {
+        "sfx": "door"
+       },
+       {
+        "narrate": "The new coupling seats with a clunk. Lights flicker on down the length of the hold, and the labouring pump settles into a steady rhythm."
+       },
+       {
+        "set": "power_on"
+       },
+       {
+        "complete": "power"
+       },
+       {
+        "score": 5,
+        "reason": "Restored auxiliary power"
+       },
+       {
+        "say": "patience",
+        "text": "LIFE SUPPORT RESERVES: RISING. THANK YOU. I AM ALMOST CHEERFUL."
+       },
+       {
+        "objective": "Revive the freighter's captain",
+        "id": "tamsin"
+       }
+      ]
+     }
+    },
+    {
+     "id": "datapad",
+     "name": "Datapad",
+     "rect": [
+      84,
+      126,
+      14,
+      12
+     ],
+     "look": "A datapad, dropped on the deck.",
+     "get": [
+      {
+       "give": "datapad"
+      },
+      {
+       "hide": "datapad"
+      },
+      {
+       "score": 2,
+       "reason": "Recovered the cargo manifest"
+      }
+     ]
+    },
+    {
+     "id": "ladder",
+     "name": "Ladder to the bridge",
+     "rect": [
+      114,
+      14,
+      24,
+      92
+     ],
+     "walkTo": [
+      126,
+      112
+     ],
+     "faceDir": "up",
+     "exit": {
+      "room": "fbridge",
+      "at": [
+       36,
+       124
+      ],
+      "face": "right",
+      "if": "hatch_open",
+      "blocked": [
+       {
+        "narrate": "You climb up. The hatch at the top won't budge - the emergency seals have jammed it."
+       }
+      ]
+     },
+     "look": {
+      "cases": [
+       {
+        "if": "hatch_open",
+        "do": "A ladder up to the bridge. The hatch at the top is open."
+       },
+       {
+        "if": true,
+        "do": "A ladder up to the bridge. The hatch at the top is sealed."
+       }
+      ]
+     },
+     "daska": {
+      "cases": [
+       {
+        "if": "hatch_open",
+        "do": "Hatch is open, sir!"
+       },
+       {
+        "if": true,
+        "do": [
+         {
+          "say": "daska",
+          "text": "Emergency seal, sir. Stand back - I've got this one. For real this time."
+         },
+         {
+          "sfx": "door"
+         },
+         {
+          "set": "hatch_open"
+         },
+         {
+          "say": "daska",
+          "text": "See? Not every problem needs a whack."
+         },
+         {
+          "say": "okafor",
+          "text": "Some of them do, apparently."
+         }
+        ]
+       }
+      ]
+     },
+     "venn": "The hatch's emergency seal has engaged. It requires brute force to release. I am... not brute."
+    }
+   ]
+  },
+  "fbridge": {
+   "name": "Patience of Stone - Bridge",
+   "paint": [
+    {
+     "type": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 150,
+     "c": "#1a1c22"
+    },
+    {
+     "type": "gradient",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 104,
+     "from": "#2a2e38",
+     "to": "#20242c"
+    },
+    {
+     "type": "rect",
+     "x": 58,
+     "y": 8,
+     "w": 204,
+     "h": 56,
+     "c": "#0a0c10"
+    },
+    {
+     "type": "gradient",
+     "x": 60,
+     "y": 10,
+     "w": 200,
+     "h": 52,
+     "from": "#0a3a40",
+     "to": "#3a6a50",
+     "dir": "h"
+    },
+    {
+     "type": "noise",
+     "x": 60,
+     "y": 10,
+     "w": 200,
+     "h": 52,
+     "c": "#80c0a0",
+     "density": 0.06,
+     "seed": 8
+    },
+    {
+     "type": "stars",
+     "count": 30,
+     "seed": 3,
+     "y0": 10,
+     "y1": 60
+    },
+    {
+     "type": "glow",
+     "x": 200,
+     "y": 30,
+     "r": 20,
+     "c": "#a0f0c0",
+     "strength": 0.3
+    },
+    {
+     "type": "rect",
+     "x": 58,
+     "y": 8,
+     "w": 204,
+     "h": 2,
+     "c": "#4a5260"
+    },
+    {
+     "type": "rect",
+     "x": 158,
+     "y": 8,
+     "w": 2,
+     "h": 56,
+     "c": "#4a5260"
+    },
+    {
+     "type": "rect",
+     "x": 58,
+     "y": 62,
+     "w": 204,
+     "h": 2,
+     "c": "#4a5260"
+    },
+    {
+     "type": "rect",
+     "x": 14,
+     "y": 56,
+     "w": 56,
+     "h": 40,
+     "c": "#2e3440"
+    },
+    {
+     "type": "rect",
+     "x": 18,
+     "y": 60,
+     "w": 48,
+     "h": 20,
+     "c": "#0e1418"
+    },
+    {
+     "type": "console",
+     "x": 16,
+     "y": 82,
+     "w": 52,
+     "h": 14,
+     "c": "#2a303a",
+     "seed": 13
+    },
+    {
+     "type": "console",
+     "x": 112,
+     "y": 74,
+     "w": 96,
+     "h": 22,
+     "c": "#30363f",
+     "seed": 14
+    },
+    {
+     "type": "rect",
+     "x": 150,
+     "y": 96,
+     "w": 20,
+     "h": 12,
+     "c": "#2a2f38"
+    },
+    {
+     "type": "rect",
+     "x": 220,
+     "y": 48,
+     "w": 30,
+     "h": 34,
+     "c": "#3a3530"
+    },
+    {
+     "type": "rect",
+     "x": 224,
+     "y": 52,
+     "w": 22,
+     "h": 26,
+     "c": "#201a10"
+    },
+    {
+     "type": "circle",
+     "x": 235,
+     "y": 65,
+     "r": 8,
+     "c": "#c08020"
+    },
+    {
+     "type": "circle",
+     "x": 235,
+     "y": 65,
+     "r": 4,
+     "c": "#ffd060"
+    },
+    {
+     "type": "glow",
+     "x": 235,
+     "y": 65,
+     "r": 14,
+     "c": "#ffb040",
+     "strength": 0.35
+    },
+    {
+     "type": "rect",
+     "x": 268,
+     "y": 32,
+     "w": 34,
+     "h": 70,
+     "c": "#6a3a30"
+    },
+    {
+     "type": "rect",
+     "x": 270,
+     "y": 34,
+     "w": 30,
+     "h": 66,
+     "c": "#5a2e26"
+    },
+    {
+     "type": "rect",
+     "x": 276,
+     "y": 60,
+     "w": 18,
+     "h": 4,
+     "c": "#e0e0e0"
+    },
+    {
+     "type": "rect",
+     "x": 283,
+     "y": 54,
+     "w": 4,
+     "h": 16,
+     "c": "#e0e0e0"
+    },
+    {
+     "type": "rect",
+     "x": 0,
+     "y": 104,
+     "w": 320,
+     "h": 3,
+     "c": "#4a5260"
+    },
+    {
+     "type": "gradient",
+     "x": 0,
+     "y": 107,
+     "w": 320,
+     "h": 43,
+     "from": "#2a2e36",
+     "to": "#1e2026"
+    },
+    {
+     "type": "rect",
+     "x": 16,
+     "y": 132,
+     "w": 36,
+     "h": 10,
+     "c": "#3a4048"
+    },
+    {
+     "type": "rect",
+     "x": 18,
+     "y": 134,
+     "w": 32,
+     "h": 6,
+     "c": "#14161a"
+    }
+   ],
+   "walk": {
+    "poly": [
+     [
+      0,
+      112
+     ],
+     [
+      320,
+      112
+     ],
+     [
+      320,
+      148
+     ],
+     [
+      0,
+      148
+     ]
+    ]
+   },
+   "scale": [
+    106,
+    0.86,
+    148,
+    1.05
+   ],
+   "hotspots": [
+    {
+     "id": "hatch",
+     "name": "Hatch down",
+     "rect": [
+      14,
+      128,
+      40,
+      16
+     ],
+     "walkTo": [
+      36,
+      130
+     ],
+     "exit": {
+      "room": "hold",
+      "at": [
+       126,
+       120
+      ],
+      "face": "down"
+     }
+    },
+    {
+     "id": "terminal",
+     "name": "Captain's terminal",
+     "rect": [
+      14,
+      56,
+      56,
+      40
+     ],
+     "walkTo": [
+      42,
+      116
+     ],
+     "faceDir": "up",
+     "look": "The captain's personal terminal.",
+     "use": {
+      "cases": [
+       {
+        "if": {
+         "not": "power_on"
+        },
+        "do": [
+         {
+          "sfx": "deny"
+         },
+         {
+          "narrate": "The screen stays dark. No power."
+         }
+        ]
+       },
+       {
+        "if": true,
+        "do": [
+         {
+          "sfx": "blip"
+         },
+         {
+          "narrate": "CAPTAIN'S LOG, T. REYES. Third run out of Tessar. Forty-one aboard this time - the Dhaval family, the Ostrins, the Kai boy whose parents didn't make it out of Camp Seven."
+         },
+         {
+          "narrate": "The Compact says \"resettlement.\" The camp records I smuggled out last run say four in ten don't survive the first year. I'm sending a copy with this log. Somebody official should see it."
+         },
+         {
+          "narrate": "Mine field in the Veil. If you're reading this and you're not Compact - please. Get them to Ossa."
+         },
+         {
+          "set": "read_log"
+         },
+         {
+          "score": 5,
+          "reason": "Read Captain Reyes' log and the camp records"
+         },
+         {
+          "complete": "who"
+         },
+         {
+          "say": "venn",
+          "text": "The camp records are authentic, Captain. Compact administrative encryption. That is... evidence."
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "core",
+     "name": "PATIENCE core",
+     "rect": [
+      220,
+      48,
+      30,
+      34
+     ],
+     "walkTo": [
+      235,
+      116
+     ],
+     "faceDir": "up",
+     "look": "The freighter's AI core. An amber light pulses gently, like a polite heartbeat.",
+     "talk": [
+      {
+       "dialogue": "patience"
+      }
+     ],
+     "venn": "A mid-grade steward intelligence, heavily customised. Someone has spent years teaching it manners."
+    },
+    {
+     "id": "locker",
+     "name": "Emergency locker",
+     "rect": [
+      268,
+      32,
+      34,
+      70
+     ],
+     "walkTo": [
+      284,
+      116
+     ],
+     "faceDir": "up",
+     "look": {
+      "cases": [
+       {
+        "if": "got_fuse",
+        "do": "An emergency locker. Flares, ration bars, and a very old bottle of something."
+       },
+       {
+        "if": true,
+        "do": "An emergency locker. Spare parts are racked inside."
+       }
+      ]
+     },
+     "get": {
+      "cases": [
+       {
+        "if": "got_fuse",
+        "do": "You don't need anything else. Okafor eyes the bottle; you close the locker."
+       },
+       {
+        "if": true,
+        "do": [
+         {
+          "narrate": "Among the spares: a heavy auxiliary power coupling."
+         },
+         {
+          "give": "fuse"
+         },
+         {
+          "set": "got_fuse"
+         }
+        ]
+       }
+      ]
+     },
+     "use": {
+      "cases": [
+       {
+        "if": "got_fuse",
+        "do": "Nothing else useful."
+       },
+       {
+        "if": true,
+        "do": [
+         {
+          "narrate": "Among the spares: a heavy auxiliary power coupling."
+         },
+         {
+          "give": "fuse"
+         },
+         {
+          "set": "got_fuse"
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "id": "viewport",
+     "name": "Viewport",
+     "rect": [
+      58,
+      8,
+      204,
+      56
+     ],
+     "look": "The Veil Nebula, green and endless. Through it, faintly, the Meridian's running lights."
+    },
+    {
+     "id": "helm",
+     "name": "Helm",
+     "rect": [
+      112,
+      72,
+      96,
+      26
+     ],
+     "look": "The helm console. Course locked for Ossa Free Port.",
+     "venn": "Navigation logs show a course from the Tessar system. Tessar is a Compact detention world."
+    }
+   ]
+  }
+ },
+ "endings": {
+  "asylum": {
+   "title": "On the Record",
+   "outcome": "success",
+   "text": [
+    "Captain's log, stardate 4432.1. Forty-one Ilvari refugees and one stubborn freighter captain are now formally under Concord protection. The Tellarch Compact has lodged a protest. Admiral Thorne has forwarded the camp records to the Concord Council with a three-word cover note: \"Read this. Today.\"",
+    "Captain Reyes has asked whether the Meridian is hiring. I told her we would talk."
+   ]
+  },
+  "favor": {
+   "title": "Varr Hospitality",
+   "outcome": "success",
+   "text": [
+    "Captain's log, stardate 4432.1. The Patience of Stone was, regrettably, seized by Varr raiders before it could be transferred to Compact custody. Sensor logs of the incident were degraded by nebular interference.",
+    "Three days later, Ossa Free Port registered forty-one new residents and one freighter. Its steward AI sent us a message. It read, in its entirety: \"THANK YOU. I AM CHEERFUL.\""
+   ]
+  },
+  "accord": {
+   "title": "By the Book",
+   "outcome": "success",
+   "text": [
+    "Captain's log, stardate 4432.1. The Patience of Stone and its passengers were transferred to Tellarch Compact custody in accordance with the Kessel Accords. Commander Vael was courteous.",
+    "Dr. Okafor has filed a formal dissent in the medical log. I have not asked him to withdraw it."
+   ]
+  },
+  "defiance": {
+   "title": "An Incident",
+   "outcome": "success",
+   "text": [
+    "Captain's log, stardate 4432.1. Following an exchange of fire with a Compact patrol cutter, the refugees are aboard the Meridian. The Compact calls it an act of aggression. Without documentation, Concord Command cannot easily call it anything else.",
+    "I made the right choice. I made it the hard way."
+   ]
+  },
+  "lost": {
+   "title": "Lost in the Veil",
+   "outcome": "failure",
+   "text": [
+    "The Meridian was lost in the Veil Nebula."
+   ]
+  }
+ }
+}
