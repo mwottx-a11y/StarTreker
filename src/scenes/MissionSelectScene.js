@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { text } from '../engine/font.js';
 import { button, panel } from '../engine/ui.js';
 import { Starfield } from '../engine/starfield.js';
-import { WIDTH, HEIGHT, COLORS } from '../engine/constants.js';
+import { WIDTH, HEIGHT, COLORS, COMPACT } from '../engine/constants.js';
 import { Director } from '../engine/director.js';
 import { listMissions, loadProblems } from '../engine/missions.js';
 
@@ -38,17 +38,19 @@ export default class MissionSelectScene extends Phaser.Scene {
     if (this.detail) this.detail.destroy();
     const c = this.add.container(0, 0);
     this.detail = c;
-    c.add(panel(this, 340, 44, 284, 340));
-    c.add(text(this, 356, 60, m.title.toUpperCase(), COLORS.highlight, 256));
-    c.add(text(this, 356, 84, `STARDATE ${m.stardate || '----'}`, COLORS.lcars2));
-    c.add(text(this, 356, 104, m.synopsis || '', COLORS.text, 256));
+    // detail panel fills the space right of the list, to the bottom of the screen
+    const px = 330, pw = WIDTH - px - 8, ph = HEIGHT - 52, tw = pw - 32, bot = 44 + ph;
+    c.add(panel(this, px, 44, pw, ph));
+    c.add(text(this, px + 16, 60, m.title.toUpperCase(), COLORS.highlight, tw));
+    c.add(text(this, px + 16, 84, `STARDATE ${m.stardate || '----'}`, COLORS.lcars2));
+    c.add(text(this, px + 16, 104, m.synopsis || '', COLORS.text, tw));
     const done = Director.profile.completed[m.id];
-    if (done) c.add(text(this, 356, 300, `BEST: ${done.percent}% - ${done.rating.toUpperCase()}`, COLORS.good, 256));
-    c.add(text(this, 356, 318, m.source?.endsWith('.json') ? 'SOURCE: EXTERNAL MODULE' : 'SOURCE: BUNDLED MODULE', COLORS.dim));
+    if (done) c.add(text(this, px + 16, bot - 84, `BEST: ${done.percent}% - ${done.rating.toUpperCase()}`, COLORS.good, tw));
+    c.add(text(this, px + 16, bot - 66, m.source?.endsWith('.json') ? 'SOURCE: EXTERNAL MODULE' : 'SOURCE: BUNDLED MODULE', COLORS.dim));
     if (locked) {
-      c.add(text(this, 356, 344, 'LOCKED: COMPLETE EARLIER MISSIONS FIRST', COLORS.alert, 256));
+      c.add(text(this, px + 16, bot - 40, 'LOCKED: COMPLETE EARLIER MISSIONS FIRST', COLORS.alert, tw));
     } else {
-      c.add(button(this, 390, 340, 190, 32, 'BEGIN MISSION', () => Director.startMission(m.id)));
+      c.add(button(this, px + pw / 2 - 100, bot - 46, 200, 34, 'BEGIN MISSION', () => Director.startMission(m.id)));
     }
   }
   update(t, dt) { this.stars.update(dt / 1000); }

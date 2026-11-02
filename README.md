@@ -63,7 +63,10 @@ verbs; the keys are W/L/U/T/G.
 - **Hail** tries to talk. **Retreat** warps out.
 - Enemies may surrender when damaged. What you do next matters.
 
-**On phones and tablets:** play in landscape (portrait shows a rotate prompt). Text defaults to large on
+**On phones and tablets:** play in landscape (portrait shows a rotate prompt). On wide, short screens (a phone
+held sideways) the game switches to a compact layout: the scene fills the full height and the controls move
+to a sidebar with large labels, and inventory opens from an **ITEMS** button. Add `#compact` to the URL to
+preview that layout on a desktop. Text defaults to large on
 touch devices; you can toggle it on the title screen.
 - Tap things directly. The label at the bottom of the room shows what you tapped.
 - **SHOW HOTSPOTS** outlines everything you can interact with.

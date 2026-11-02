@@ -2,14 +2,19 @@ import Phaser from 'phaser';
 import { text } from '../engine/font.js';
 import { DialogBox, button, panel, toast } from '../engine/ui.js';
 import { makeShip, makePlanet } from '../engine/pixel.js';
-import { WIDTH, HEIGHT, COLORS } from '../engine/constants.js';
+import { WIDTH, HEIGHT, COLORS, COMPACT } from '../engine/constants.js';
 import { Director } from '../engine/director.js';
 import { Halt } from '../engine/script.js';
 import { sfx, startDrone } from '../engine/audio.js';
 import { IS_TOUCH } from '../engine/device.js';
 
-const VIEW_H = 320;
-const CX = WIDTH / 2, CY = VIEW_H / 2;
+// Standard layout: viewscreen above a HUD bar. Compact: full-height viewscreen,
+// HUD in a right-hand sidebar.
+const SIDEBAR_W = 140;
+const VIEW_W = COMPACT ? WIDTH - SIDEBAR_W : WIDTH;
+const VIEW_H = COMPACT ? HEIGHT : 320;
+const CX = VIEW_W / 2, CY = VIEW_H / 2;
+const inView = (p) => p.y < VIEW_H && p.x < VIEW_W;
 const F = 320; // focal length
 const DEADZONE = 36;
 
@@ -67,9 +72,9 @@ export default class CombatScene extends Phaser.Scene {
     // crosshair
     this.cross = this.add.graphics().setDepth(30);
     this.aim = { x: CX, y: CY };
-    this.input.on('pointermove', (p) => { if (p.y < VIEW_H && (!p.wasTouch || p.isDown)) { this.aim.x = p.x; this.aim.y = p.y; } });
+    this.input.on('pointermove', (p) => { if (inView(p) && (!p.wasTouch || p.isDown)) { this.aim.x = p.x; this.aim.y = p.y; } });
     this.input.on('pointerdown', (p) => {
-      if (this.paused || this.over || p.y >= VIEW_H) return;
+      if (this.paused || this.over || !inView(p)) return;
       // aim where the pointer is *now* (a touch has no prior hover position)
       this.aim.x = p.x; this.aim.y = p.y;
       if (p.rightButtonDown()) this.fireTorpedo(); else this.firePhaser();
@@ -94,8 +99,9 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   buildHUD() {
-    panel(this, 0, VIEW_H, WIDTH, HEIGHT - VIEW_H).setDepth(100);
     const D = 101;
+    if (COMPACT) return this.buildSidebarHUD(D);
+    panel(this, 0, VIEW_H, WIDTH, HEIGHT - VIEW_H).setDepth(100);
     this.hud = this.add.graphics().setDepth(D);
     this.hudText = text(this, 12, VIEW_H + 10, '', COLORS.text).setDepth(D);
     this.enemyText = text(this, 330, VIEW_H + 10, '', COLORS.alert).setDepth(D);
@@ -105,6 +111,19 @@ export default class CombatScene extends Phaser.Scene {
     button(this, 230, HEIGHT - 36, 120, 30, 'TORPEDO', () => { if (!this.paused && !this.over) this.fireTorpedo(); }, { color: 0xffb070 }).setDepth(D);
     const help = IS_TOUCH ? 'TAP: FIRE PHASERS\nHOLD+DRAG: STEER' : 'CLICK/SPACE: PHASERS\nR-CLICK/T: TORPEDO';
     text(this, 358, HEIGHT - 32, help, COLORS.dim).setDepth(D);
+  }
+
+  buildSidebarHUD(D) {
+    const x = VIEW_W;
+    panel(this, x, 0, SIDEBAR_W, HEIGHT).setDepth(100);
+    this.hudText = text(this, x + 10, 10, '', COLORS.text).setDepth(D);
+    this.enemyText = text(this, x + 10, 84, '', COLORS.alert, SIDEBAR_W - 16).setDepth(D);
+    this.radar = this.add.graphics().setDepth(D);
+    this.hud = this.add.graphics().setDepth(D);
+    const B = (y, label, fn, color) => button(this, x + 8, y, SIDEBAR_W - 16, 34, label, fn, { size: 16, color }).setDepth(D);
+    B(HEIGHT - 120, 'HAIL', () => this.hail());
+    B(HEIGHT - 82, 'RETREAT', () => this.retreat());
+    B(HEIGHT - 44, 'TORPEDO', () => { if (!this.paused && !this.over) this.fireTorpedo(); }, 0xffb070);
   }
 
   // ---------------------------------------------------------------- weapons
@@ -279,7 +298,8 @@ export default class CombatScene extends Phaser.Scene {
       `SHIELDS ${String(Math.round(s.ship.shields)).padStart(3)}%\nHULL    ${String(Math.round(s.ship.hull)).padStart(3)}%\nTORPS   ${s.ship.torpedoes}`,
     );
     const live = this.enemies.filter((e) => e.alive);
-    this.enemyText.setText(live.map((e) => `${e.def.name.toUpperCase()}\nSHD ${Math.round(e.shields)}  HULL ${Math.round((e.hull / e.maxHull) * 100)}%`).join('\n'));
+    const sep = COMPACT ? '\n' : '  '; // narrow sidebar: one stat per line
+    this.enemyText.setText(live.map((e) => `${e.def.name.toUpperCase()}\nSHD ${Math.round(e.shields)}${sep}HULL ${Math.round((e.hull / e.maxHull) * 100)}%`).join('\n'));
   }
 
   simulate(dt) {
@@ -360,7 +380,7 @@ export default class CombatScene extends Phaser.Scene {
     const g = this.starG; g.clear();
     for (const st of this.stars) {
       const p = this.project(st);
-      if (!p || p.x < 0 || p.x > WIDTH || p.y < 0 || p.y > VIEW_H) continue;
+      if (!p || p.x < 0 || p.x > VIEW_W || p.y < 0 || p.y > VIEW_H) continue;
       g.fillStyle(st.length() > 1100 ? 0x8890a8 : 0xffffff).fillRect(Math.round(p.x / 2) * 2, Math.round(p.y / 2) * 2, 2, 2);
     }
     if (this.planet) {
@@ -399,7 +419,7 @@ export default class CombatScene extends Phaser.Scene {
     }
     if (this.beam && this.beam.t > 0) {
       this.beam.t -= dt;
-      for (const sx of [80, WIDTH - 80]) {
+      for (const sx of [80, VIEW_W - 80]) {
         fx.lineStyle(5, 0xff6a20, 1).lineBetween(sx, VIEW_H, this.beam.x, this.beam.y);
         fx.lineStyle(2, 0xffe0a0, 1).lineBetween(sx, VIEW_H, this.beam.x, this.beam.y);
       }
@@ -415,7 +435,7 @@ export default class CombatScene extends Phaser.Scene {
     for (const e of this.enemies) {
       if (!e.alive) continue;
       const p = this.project(e.pos);
-      if (p && p.x > 0 && p.x < WIDTH && p.y > 0 && p.y < VIEW_H) continue;
+      if (p && p.x > 0 && p.x < VIEW_W && p.y > 0 && p.y < VIEW_H) continue;
       const ang = Math.atan2(-e.pos.y, e.pos.x);
       const ex = CX + Math.cos(ang) * (CX - 24), ey = CY + Math.sin(ang) * (CY - 24);
       fx.fillStyle(e.pos.z < 0 ? 0xff4040 : 0xffd060, 1);
@@ -433,11 +453,13 @@ export default class CombatScene extends Phaser.Scene {
     // HUD bars + radar
     const s = Director.state;
     const h = this.hud; h.clear();
-    h.fillStyle(0x203040).fillRect(160, VIEW_H + 10, 140, 8).fillRect(160, VIEW_H + 22, 140, 8);
-    h.fillStyle(0x40a0ff).fillRect(160, VIEW_H + 10, 1.4 * s.ship.shields, 8);
-    h.fillStyle(s.ship.hull > 40 ? 0x60e070 : 0xff5040).fillRect(160, VIEW_H + 22, 1.4 * s.ship.hull, 8);
+    // bar origin/length depend on layout: under the readout in the sidebar, beside it in the bottom bar
+    const [bx, by, bl] = COMPACT ? [VIEW_W + 10, 48, SIDEBAR_W - 20] : [160, VIEW_H + 10, 140];
+    h.fillStyle(0x203040).fillRect(bx, by, bl, 8).fillRect(bx, by + 12, bl, 8);
+    h.fillStyle(0x40a0ff).fillRect(bx, by, (bl / 100) * s.ship.shields, 8);
+    h.fillStyle(s.ship.hull > 40 ? 0x60e070 : 0xff5040).fillRect(bx, by + 12, (bl / 100) * s.ship.hull, 8);
     const R = this.radar; R.clear();
-    const rx = WIDTH - 50, ry = VIEW_H + 40;
+    const [rx, ry] = COMPACT ? [VIEW_W + SIDEBAR_W / 2, 152] : [WIDTH - 50, VIEW_H + 40];
     R.lineStyle(1, 0x40a060).strokeCircle(rx, ry, 30).lineBetween(rx, ry - 30, rx, ry + 30).lineBetween(rx - 30, ry, rx + 30, ry);
     R.fillStyle(0x60e070).fillRect(rx - 2, ry - 2, 4, 4);
     for (const e of this.enemies) {

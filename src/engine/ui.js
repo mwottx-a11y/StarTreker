@@ -26,6 +26,7 @@ export function button(scene, x, y, w, h, label, onClick, opts = {}) {
   const bg = scene.add.rectangle(0, 0, w, h, opts.fill ?? 0x1c2a44).setOrigin(0);
   bg.setStrokeStyle(2, opts.edge ?? COLORS.panelEdge);
   const t = text(scene, w / 2, h / 2, label, opts.color ?? COLORS.text).setOrigin(0.5);
+  if (opts.size) t.setFontSize(opts.size);
   c.add([bg, t]);
   c.label = t; c.bg = bg;
   c.enabled = true;

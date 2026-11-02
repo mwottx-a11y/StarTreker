@@ -4,7 +4,12 @@ import { DialogBox, button, panel, toast } from '../engine/ui.js';
 import { Starfield } from '../engine/starfield.js';
 import { paintTexture } from '../engine/painter.js';
 import { makeHumanoid, makePlanet, makeShip } from '../engine/pixel.js';
-import { WIDTH, HEIGHT, COLORS } from '../engine/constants.js';
+import { WIDTH, HEIGHT, COLORS, COMPACT } from '../engine/constants.js';
+
+// The bridge view is drawn in a 640x320 frame. In the compact layout it is
+// scaled to the full screen height and the command buttons become a sidebar.
+const BW = 640, BH = 320;
+const VIEW_SCALE = COMPACT ? HEIGHT / BH : 1;
 import { Director } from '../engine/director.js';
 import { check } from '../engine/script.js';
 import { CREW } from '../cast/crew.js';
@@ -65,6 +70,7 @@ export default class BridgeScene extends Phaser.Scene {
     // viewscreen contents
     this.vsLayer = this.add.container(0, 0);
     const maskG = this.make.graphics({}, false).fillStyle(0xffffff).fillRect(VS.x, VS.y, VS.w, VS.h);
+    maskG.setScale(VIEW_SCALE); // masks use their own transform, not the container's
     this.vsLayer.setMask(maskG.createGeometryMask());
     this.stars = new Starfield(this, VS.x, VS.y, VS.w, VS.h, { count: 70, vx: -8, depth: 1 });
     this.vsLayer.add(this.stars.g);
@@ -101,24 +107,35 @@ export default class BridgeScene extends Phaser.Scene {
       z.on('pointerout', () => this.hover(null));
       z.on('pointerdown', () => this.station(st.id));
     }
-    this.hoverText = text(this, WIDTH / 2, 176, '', COLORS.highlight).setOrigin(0.5).setDepth(50);
+    this.hoverText = text(this, BW / 2, 176, '', COLORS.highlight).setOrigin(0.5).setDepth(50);
+    this.statusText = text(this, BW / 2, 156, '', COLORS.dim).setOrigin(0.5, 0).setDepth(5);
+    this.alertBox = this.add.rectangle(0, 0, BW, BH, 0xff0000, 0).setOrigin(0).setDepth(40);
 
-    // command bar
-    panel(this, 0, 320, WIDTH, 80);
+    // Everything so far is the bridge view; group it so the compact layout can scale it.
+    if (COMPACT) {
+      const view = this.children.list.slice().sort((a, b) => a.depth - b.depth);
+      this.add.container(0, 0, view).setScale(VIEW_SCALE);
+    }
+
     const btns = [
-      ['HELM', 'helm'], ['SCIENCE', 'science'], ['COMMS', 'comms'], ['TACTICAL', 'tactical'],
-      ['ENGINEERING', 'engineering'], ['TRANSPORTER', 'transporter'], ['MISSION LOG', 'log'], ['MENU', 'menu'],
+      ['HELM', 'helm', 'HELM'], ['SCIENCE', 'science', 'SCIENCE'], ['COMMS', 'comms', 'COMMS'], ['TACTICAL', 'tactical', 'TACTICAL'],
+      ['ENGINEERING', 'engineering', 'ENGINEER'], ['TRANSPORTER', 'transporter', 'BEAM DOWN'], ['MISSION LOG', 'log', 'LOG'], ['MENU', 'menu', 'MENU'],
     ];
-    btns.forEach(([label, id], i) => {
-      button(this, 12 + (i % 4) * 156, 326 + Math.floor(i / 4) * 36, 148, 32, label, () => this.station(id));
-    });
-
-    this.statusText = text(this, WIDTH / 2, 156, '', COLORS.dim).setOrigin(0.5, 0).setDepth(5);
-    this.alertBox = this.add.rectangle(0, 0, WIDTH, 320, 0xff0000, 0).setOrigin(0).setDepth(40);
+    if (COMPACT) {
+      // sidebar: one column of large buttons
+      const x = BW * VIEW_SCALE, w = WIDTH - x;
+      panel(this, x, 0, w, HEIGHT);
+      btns.forEach(([, id, short], i) => button(this, x + 6, 6 + i * 36, w - 12, 33, short, () => this.station(id), { size: 16 }));
+    } else {
+      panel(this, 0, 320, WIDTH, 80);
+      btns.forEach(([label, id], i) => {
+        button(this, 12 + (i % 4) * 156, 326 + Math.floor(i / 4) * 36, 148, 32, label, () => this.station(id));
+      });
+    }
     this.refreshStatus();
     this.refreshAlert();
 
-    this.dialog = new DialogBox(this, Director.characters, { y: 152 });
+    this.dialog = new DialogBox(this, Director.characters, { y: COMPACT ? HEIGHT : 152 });
     startDrone(['A1', 'E2'], 0.025);
 
     // entry scripts
@@ -279,27 +296,31 @@ export default class BridgeScene extends Phaser.Scene {
     this.busy++;
     const c = this.add.container(0, 0).setDepth(900);
     c.add(this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x000000, 0.6).setOrigin(0).setInteractive());
-    c.add(panel(this, 40, 20, WIDTH - 80, 362));
-    c.add(text(this, 60, 34, 'STELLAR CARTOGRAPHY - SELECT DESTINATION', COLORS.lcars1));
+    // map geometry differs per layout (compact has 300px of height)
+    const MAP = COMPACT
+      ? { px: 16, py: 6, ph: HEIGHT - 12, top: 44, ky: 1.5, bottom: 206, infoY: 214, engY: HEIGHT - 50 }
+      : { px: 40, py: 20, ph: 362, top: 50, ky: 2, bottom: 300, infoY: 300, engY: 330 };
+    c.add(panel(this, MAP.px, MAP.py, WIDTH - MAP.px * 2, MAP.ph));
+    c.add(text(this, 60, MAP.py + 14, 'STELLAR CARTOGRAPHY - SELECT DESTINATION', COLORS.lcars1));
     const g = this.add.graphics(); c.add(g);
     const systems = Object.entries(m.starmap.systems).filter(([id, sy]) => !sy.hidden || s.unlocked.includes(id));
-    const toScreen = (sy) => [60 + sy.x * 2, 50 + sy.y * 2];
+    const toScreen = (sy) => [60 + sy.x * 2, MAP.top + sy.y * MAP.ky];
     // grid
     g.lineStyle(1, 0x1e2c48);
-    for (let x = 60; x < WIDTH - 60; x += 32) g.lineBetween(x, 50, x, 300);
-    for (let y = 50; y < 300; y += 32) g.lineBetween(60, y, WIDTH - 60, y);
+    for (let x = 60; x < WIDTH - 60; x += 32) g.lineBetween(x, MAP.top, x, MAP.bottom);
+    for (let y = MAP.top; y < MAP.bottom; y += 32) g.lineBetween(60, y, WIDTH - 60, y);
     const cur = m.starmap.systems[s.system];
     // Two-step selection: tap a system to read about it, then ENGAGE.
     // (Instant warp-on-tap gave touch players no way to see descriptions.)
-    const info = text(this, 60, 300, 'Select a system.', COLORS.dim, WIDTH - 280);
+    const info = text(this, 60, MAP.infoY, 'Select a system.', COLORS.dim, WIDTH - 280);
     c.add(info);
     const sel = this.add.graphics(); c.add(sel);
     let chosen = null;
     const close = () => { c.destroy(); this.busy--; };
-    const engage = button(this, WIDTH - 196, 330, 136, 36, 'ENGAGE', async () => {
+    const engage = button(this, WIDTH - 196, MAP.engY, 136, 36, 'ENGAGE', async () => {
       if (!chosen) return;
       const id = chosen; close(); await this.warpTo(id);
-    }, { color: 0x60e070 }).setEnabled(false);
+    }, { color: 0x60e070, size: 16 }).setEnabled(false);
     for (const [id, sy] of systems) {
       const [x, y] = toScreen(sy);
       const locked = sy.locked && !s.unlocked.includes(id);
@@ -319,7 +340,7 @@ export default class BridgeScene extends Phaser.Scene {
       c.add(z);
     }
     c.add(engage);
-    c.add(button(this, WIDTH - 176, 28, 116, 26, 'CANCEL', close));
+    c.add(button(this, WIDTH - 196, MAP.py + 8, 136, 30, 'CANCEL', close, { size: 16 }));
   }
 
   async warpTo(id) {

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { text } from '../engine/font.js';
 import { button, panel } from '../engine/ui.js';
 import { Starfield } from '../engine/starfield.js';
-import { WIDTH, HEIGHT, COLORS } from '../engine/constants.js';
+import { WIDTH, HEIGHT, COLORS, COMPACT } from '../engine/constants.js';
 import { Director } from '../engine/director.js';
 import { sfx } from '../engine/audio.js';
 
@@ -51,13 +51,18 @@ export default class DebriefScene extends Phaser.Scene {
     c.add(text(this, 32, 72, `RATING: ${r.rating.toUpperCase()}`, r.success ? COLORS.lcars2 : COLORS.alert));
     c.add(text(this, 32, 96, 'COMMENDATIONS', COLORS.dim));
     const notes = Object.entries(events).filter(([, v]) => v > 0);
+    // compact layout has less height: two columns, one line per entry
+    const cols = COMPACT ? 2 : 1, colW = (WIDTH - 80) / cols, perCol = Math.ceil(notes.length / cols);
+    const maxChars = Math.floor((colW - 56) / 8);
     notes.forEach(([reason, pts], i) => {
-      c.add(text(this, 40, 114 + i * 14, `+${String(pts).padStart(2)}  ${reason}`, COLORS.good, WIDTH - 90));
+      const col = Math.floor(i / perCol), row = i % perCol;
+      const r = COMPACT && reason.length > maxChars ? reason.slice(0, maxChars - 1) + '.' : reason;
+      c.add(text(this, 40 + col * colW, 114 + row * 14, `+${String(pts).padStart(2)}  ${r}`, COLORS.good, COMPACT ? 0 : WIDTH - 90));
     });
     if (!notes.length) c.add(text(this, 40, 114, 'None.', COLORS.dim));
     if (r.percent < 100 && m.hints?.length) {
       const hint = m.hints[Math.floor(Math.random() * m.hints.length)];
-      c.add(text(this, 32, HEIGHT - 84, `ADMIRAL THORNE: "${hint}"`, COLORS.dim, WIDTH - 64));
+      c.add(text(this, 32, COMPACT ? HEIGHT - 66 : HEIGHT - 84, `ADMIRAL THORNE: "${hint}"`, COLORS.dim, WIDTH - 64));
     }
     c.add(button(this, WIDTH / 2 - 210, HEIGHT - 42, 200, 24, 'CAPTAIN\'S LOG', () => this.showLog()));
     c.add(button(this, WIDTH / 2 + 10, HEIGHT - 42, 200, 24, 'MISSION ARCHIVE', () => this.scene.start('MissionSelect')));

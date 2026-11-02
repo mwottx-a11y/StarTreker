@@ -4,7 +4,9 @@ import { DialogBox, button, panel, portraitKey, toast } from '../engine/ui.js';
 import { paintTexture } from '../engine/painter.js';
 import { makeHumanoid, registerHumanoidAnims, pixelMap, HUMANOID_H } from '../engine/pixel.js';
 import { itemIcon } from '../engine/icons.js';
-import { WIDTH, ART, ROOM_W, ROOM_H, UI_Y, COLORS } from '../engine/constants.js';
+import { WIDTH, HEIGHT, ART, ROOM_W, ROOM_H, UI_Y, COLORS, COMPACT } from '../engine/constants.js';
+
+const ROOM_PX_W = ROOM_W * ART; // room width on screen (640)
 import { Director } from '../engine/director.js';
 import { check, interp } from '../engine/script.js';
 import { AWAY_TEAM, SPECIALTY, FALLBACK, pick } from '../cast/crew.js';
@@ -69,7 +71,7 @@ export default class AwayScene extends Phaser.Scene {
     }
 
     this.buildUI();
-    this.dialog = new DialogBox(this, Director.characters, { y: 6 });
+    this.dialog = new DialogBox(this, Director.characters, { y: 6, depth: 9500 }); // above the control sidebar/bar
 
     // input
     this.input.on('pointermove', (p) => this.onMove(p));
@@ -324,14 +326,32 @@ export default class AwayScene extends Phaser.Scene {
   // ------------------------------------------------------------ UI
 
   buildUI() {
-    panel(this, 0, UI_Y, WIDTH, 100).setDepth(8000);
     const D = 8001;
-    const big = prefs.largeText;
+    const big = prefs.largeText || COMPACT;
     this.hoverLabel = text(this, 12, UI_Y - (big ? 21 : 14), '', COLORS.highlight).setDepth(9000);
     if (big) this.hoverLabel.setFontSize(16);
     this.hoverBg = this.add.rectangle(6, UI_Y - (big ? 25 : 18), 10, big ? 22 : 14, 0x000000, 0.6).setOrigin(0).setDepth(8999);
-    this.roomLabel = text(this, WIDTH - 8, UI_Y - (big ? 26 : 14), (this.room.name || '').toUpperCase(), COLORS.dim).setOrigin(1, 0).setDepth(9000);
+    this.roomLabel = text(this, ROOM_PX_W - 8, UI_Y - (big ? 26 : 14), (this.room.name || '').toUpperCase(), COLORS.dim).setOrigin(1, 0).setDepth(9000);
 
+    this.invSlots = [];
+    if (COMPACT) this.buildSidebar(D);
+    else this.buildBottomBar(D);
+    this.refreshInventory();
+    this.setMode({ verb: 'walk' });
+
+    this.input.keyboard?.on('keydown', (e) => {
+      if (this.busy || this.halted) return;
+      const map = { w: 'walk', l: 'look', u: 'use', t: 'talk', g: 'get' };
+      if (map[e.key]) this.setMode({ verb: map[e.key] });
+      if (e.key === 'c') this.communicator();
+      if (e.key === 'i' && COMPACT) this.openInventory();
+      if (e.key === 'Escape') this.setMode({ verb: 'walk' });
+    });
+  }
+
+  /** Standard layout: verbs, crew and inventory in a bar under the room. */
+  buildBottomBar(D) {
+    panel(this, 0, UI_Y, WIDTH, 100).setDepth(8000);
     this.verbBtns = {};
     const verbs = [...VERBS, 'comm'];
     verbs.forEach((v, i) => {
@@ -369,36 +389,88 @@ export default class AwayScene extends Phaser.Scene {
     this.refreshCrewButtons();
 
     // inventory
-    this.invSlots = [];
-    this.invPage = 0;
-    for (let i = 0; i < 10; i++) {
-      const x = 412 + (i % 5) * 44, y = UI_Y + 10 + Math.floor(i / 5) * 44;
-      const bg = this.add.rectangle(x, y, 40, 40, 0x0c1420).setOrigin(0).setStrokeStyle(2, COLORS.panelEdge).setDepth(D).setInteractive({ useHandCursor: true });
-      const icon = this.add.image(x + 20, y + 20, '__DEFAULT').setScale(2).setDepth(D).setVisible(false);
-      const slot = { bg, icon, item: null };
-      bg.on('pointerdown', (p, lx, ly, ev) => {
-        ev.stopPropagation();
-        if (!slot.item) return;
-        if (p.rightButtonDown()) { this.describeItem(slot.item); return; }
-        sfx('blip');
-        if (this.mode.item === slot.item) this.describeItem(slot.item);
-        else if (this.mode.item && this.mode.item !== slot.item) this.combineItems(this.mode.item, slot.item);
-        else this.setMode({ item: slot.item });
-      });
-      bg.on('pointerover', () => { if (slot.item) this.setHover(this.mode.item && this.mode.item !== slot.item ? `Use ${this.itemName(this.mode.item)} with ${this.itemName(slot.item)}` : this.itemName(slot.item)); });
-      bg.on('pointerout', () => this.setHover(''));
-      this.invSlots.push(slot);
-    }
-    this.refreshInventory();
-    this.setMode({ verb: 'walk' });
+    for (let i = 0; i < 10; i++) this.addInvSlot(412 + (i % 5) * 44, UI_Y + 10 + Math.floor(i / 5) * 44, 40, D);
+  }
 
-    this.input.keyboard?.on('keydown', (e) => {
-      if (this.busy || this.halted) return;
-      const map = { w: 'walk', l: 'look', u: 'use', t: 'talk', g: 'get' };
-      if (map[e.key]) this.setMode({ verb: map[e.key] });
-      if (e.key === 'c') this.communicator();
-      if (e.key === 'Escape') this.setMode({ verb: 'walk' });
+  /**
+   * Compact layout (phones in landscape): the room fills the full height and the
+   * controls sit in a sidebar with large labels. Inventory opens as an overlay.
+   */
+  buildSidebar(D) {
+    const x0 = ROOM_PX_W, w = WIDTH - x0;
+    panel(this, x0, 0, w, HEIGHT).setDepth(8000);
+    // crew specialists, scaled to fit three across
+    this.crewBtns = {};
+    const cs = Math.min(1, (w - 16) / 3 / 44);
+    AWAY_TEAM.forEach((id, i) => {
+      const def = Director.characters[id];
+      const x = x0 + 8 + i * 44 * cs + 2, y = 8;
+      const img = this.add.image(x, y, portraitKey(this, id, def)).setOrigin(0).setScale(cs).setDepth(D).setInteractive({ useHandCursor: true });
+      const frame = this.add.rectangle(x - 2, y - 2, 40 * cs + 4, 40 * cs + 4).setOrigin(0).setStrokeStyle(2, COLORS.panelEdge).setDepth(D);
+      img.on('pointerdown', (p, lx, ly, ev) => { ev.stopPropagation(); sfx('blip'); this.setMode({ crew: id }); });
+      this.crewBtns[id] = { img, frame };
     });
+    this.refreshCrewButtons = () => {
+      for (const id of AWAY_TEAM) this.crewBtns[id].img.setTint(Director.state.crew[id]?.injured ? 0xff6060 : 0xffffff);
+    };
+    this.refreshCrewButtons();
+    // verbs, one per row
+    this.verbBtns = {};
+    const top = 8 + 44 * cs + 6, rowH = 31;
+    [...VERBS, 'comm'].forEach((v, i) => {
+      this.verbBtns[v] = button(this, x0 + 6, top + i * rowH, w - 12, rowH - 3, v.toUpperCase(), () => {
+        if (v === 'comm') return this.communicator();
+        this.setMode({ verb: v });
+      }, { size: 16 }).setDepth(D);
+    });
+    const yb = top + 6 * rowH + 2;
+    this.itemsBtn = button(this, x0 + 6, yb, w - 12, 28, 'ITEMS', () => this.openInventory(), { size: 16, color: 0xffd860 }).setDepth(D);
+    button(this, x0 + 6, yb + 31, w - 12, Math.min(28, HEIGHT - yb - 35), 'REVEAL', () => this.revealHotspots(), { size: 16 }).setDepth(D);
+  }
+
+  /** One inventory slot with select / examine / combine behaviour. */
+  addInvSlot(x, y, size, depth, container = null, onPicked = null) {
+    const bg = this.add.rectangle(x, y, size, size, 0x0c1420).setOrigin(0).setStrokeStyle(2, COLORS.panelEdge).setDepth(depth).setInteractive({ useHandCursor: true });
+    const icon = this.add.image(x + size / 2, y + size / 2, '__DEFAULT').setScale(size >= 56 ? 3 : 2).setDepth(depth).setVisible(false);
+    const slot = { bg, icon, item: null };
+    container?.add([bg, icon]);
+    bg.on('pointerdown', (p, lx, ly, ev) => {
+      ev.stopPropagation();
+      if (!slot.item) return;
+      sfx('blip');
+      const held = this.mode.item;
+      onPicked?.();
+      if (p.rightButtonDown() || held === slot.item) this.describeItem(slot.item);
+      else if (held && held !== slot.item) this.combineItems(held, slot.item);
+      else this.setMode({ item: slot.item });
+    });
+    bg.on('pointerover', () => { if (slot.item) this.setHover(this.mode.item && this.mode.item !== slot.item ? `Use ${this.itemName(this.mode.item)} with ${this.itemName(slot.item)}` : this.itemName(slot.item)); });
+    bg.on('pointerout', () => this.setHover(this.modePrefix()));
+    this.invSlots.push(slot);
+    return slot;
+  }
+
+  /** Compact layout: inventory as a large overlay over the room. */
+  openInventory() {
+    if (this.busy || this.halted || this.invLayer) return;
+    const D = 8600;
+    const c = this.add.container(0, 0).setDepth(D);
+    this.invLayer = c;
+    const close = () => {
+      this.invSlots = []; this.invLayer = null; c.destroy();
+      this.setMode(this.mode); // refresh highlights
+    };
+    const shade = this.add.rectangle(0, 0, ROOM_PX_W, HEIGHT, 0x000000, 0.55).setOrigin(0).setDepth(D).setInteractive();
+    shade.on('pointerdown', (p, lx, ly, ev) => { ev.stopPropagation(); close(); });
+    const pw = 5 * 64 + 28, ph = 2 * 64 + 74, px = (ROOM_PX_W - pw) / 2, py = (HEIGHT - ph) / 2;
+    const help = this.mode.item ? `Holding ${this.itemName(this.mode.item)}` : 'Tap to use'; // one line
+    c.add([shade, panel(this, px, py, pw, ph).setDepth(D), text(this, px + 16, py + 14, 'ITEMS', COLORS.lcars1).setFontSize(16).setDepth(D),
+      text(this, px + 16, py + ph - 20, `${help}. Tap again to examine.`, COLORS.dim, pw - 32).setDepth(D)]);
+    this.invSlots = [];
+    for (let i = 0; i < 10; i++) this.addInvSlot(px + 14 + (i % 5) * 64, py + 40 + Math.floor(i / 5) * 64, 56, D + 1, c, close);
+    c.add(button(this, px + pw - 106, py + 8, 92, 26, 'CLOSE', close, { size: 16 }).setDepth(D + 1));
+    this.refreshInventory();
+    this.setMode(this.mode);
   }
 
   itemName(id) { return Director.items[id]?.name || id; }
@@ -432,6 +504,7 @@ export default class AwayScene extends Phaser.Scene {
     for (const [v, b] of Object.entries(this.verbBtns)) b.setSelected(mode.verb === v);
     for (const id of AWAY_TEAM) this.crewBtns[id].frame.setStrokeStyle(2, mode.crew === id ? COLORS.highlight : COLORS.panelEdge);
     for (const slot of this.invSlots) slot.bg.setStrokeStyle(2, slot.item && mode.item === slot.item ? COLORS.highlight : COLORS.panelEdge);
+    this.itemsBtn?.setSelected(!!mode.item);
     this.setHover(this.modePrefix());
   }
 
@@ -441,6 +514,8 @@ export default class AwayScene extends Phaser.Scene {
     if (m.crew) return `${Director.characters[m.crew].short}: ${SPECIALTY[m.crew].verb}`;
     return VERB_LABEL[m.verb];
   }
+
+  inRoom(p) { return p.x < ROOM_PX_W && p.y < ROOM_H * ART; }
 
   setHover(str) {
     this.hoverLabel.setText(str);
@@ -461,7 +536,7 @@ export default class AwayScene extends Phaser.Scene {
       const label = (ho.def.exit ? '> ' : '') + ho.def.name;
       const ty = Math.max(2, y - 11);
       const t = text(this, 0, ty, label, col).setOrigin(0.5, 0);
-      t.setX(Phaser.Math.Clamp(x + w / 2, t.width / 2 + 4, WIDTH - t.width / 2 - 4));
+      t.setX(Phaser.Math.Clamp(x + w / 2, t.width / 2 + 4, ROOM_PX_W - t.width / 2 - 4));
       c.add(this.add.rectangle(t.x, ty - 1, t.width + 6, 10, 0x000000, 0.7).setOrigin(0.5, 0));
       c.add(t);
     }
@@ -469,7 +544,7 @@ export default class AwayScene extends Phaser.Scene {
   }
 
   onMove(p) {
-    if (p.y >= UI_Y) return;
+    if (!this.inRoom(p)) return;
     const ax = p.x / ART, ay = p.y / ART;
     const h = this.hotspotAt(ax, ay);
     const crew = this.crewAt(ax, ay);
@@ -479,7 +554,7 @@ export default class AwayScene extends Phaser.Scene {
   }
 
   onClick(p) {
-    if (p.y >= UI_Y || this.busy || this.halted) return;
+    if (!this.inRoom(p) || this.busy || this.halted || this.invLayer) return;
     // no hover on touch screens: show what was tapped, and mark the spot
     this.onMove(p);
     if (p.wasTouch) {
