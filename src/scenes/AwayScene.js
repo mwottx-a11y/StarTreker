@@ -9,6 +9,7 @@ import { Director } from '../engine/director.js';
 import { check, interp } from '../engine/script.js';
 import { AWAY_TEAM, SPECIALTY, FALLBACK, pick } from '../cast/crew.js';
 import { sfx, startDrone } from '../engine/audio.js';
+import { IS_TOUCH, TOUCH_PAD, prefs } from '../engine/device.js';
 
 const VERBS = ['walk', 'look', 'use', 'talk', 'get'];
 const VERB_LABEL = { walk: 'Walk to', look: 'Look at', use: 'Use', talk: 'Talk to', get: 'Get' };
@@ -269,9 +270,10 @@ export default class AwayScene extends Phaser.Scene {
     const list = [...this.hotspotObjs.values()].filter((h) => h.visible);
     // smallest containing rect wins - lets small objects sit on top of large ones
     let best = null, bestArea = Infinity;
+    const P = TOUCH_PAD; // fingertip margin on touch screens
     for (const h of list) {
       const [x, y, w, hh] = h.rect;
-      if (ax >= x && ax <= x + w && ay >= y && ay <= y + hh) {
+      if (ax >= x - P && ax <= x + w + P && ay >= y - P && ay <= y + hh + P) {
         const area = w * hh;
         if (area < bestArea) { best = h; bestArea = area; }
       }
@@ -284,7 +286,7 @@ export default class AwayScene extends Phaser.Scene {
       const mem = this.team[id];
       const s = this.depthScale(mem.y);
       const down = mem.spr.frame.name === 'down';
-      const w = 14 * s, h = (down ? 10 : 38) * s;
+      const w = 14 * s + TOUCH_PAD, h = (down ? 10 : 38) * s;
       if (ax >= mem.x - w / 2 && ax <= mem.x + w / 2 && ay >= mem.y - h && ay <= mem.y) return id;
     }
     return null;
@@ -324,20 +326,25 @@ export default class AwayScene extends Phaser.Scene {
   buildUI() {
     panel(this, 0, UI_Y, WIDTH, 100).setDepth(8000);
     const D = 8001;
-    this.hoverLabel = text(this, 12, UI_Y - 14, '', COLORS.highlight).setDepth(9000);
-    this.hoverBg = this.add.rectangle(6, UI_Y - 18, 10, 14, 0x000000, 0.6).setOrigin(0).setDepth(8999);
-    this.roomLabel = text(this, WIDTH - 8, UI_Y - 14, (this.room.name || '').toUpperCase(), COLORS.dim).setOrigin(1, 0).setDepth(9000);
+    const big = prefs.largeText;
+    this.hoverLabel = text(this, 12, UI_Y - (big ? 21 : 14), '', COLORS.highlight).setDepth(9000);
+    if (big) this.hoverLabel.setFontSize(16);
+    this.hoverBg = this.add.rectangle(6, UI_Y - (big ? 25 : 18), 10, big ? 22 : 14, 0x000000, 0.6).setOrigin(0).setDepth(8999);
+    this.roomLabel = text(this, WIDTH - 8, UI_Y - (big ? 26 : 14), (this.room.name || '').toUpperCase(), COLORS.dim).setOrigin(1, 0).setDepth(9000);
 
     this.verbBtns = {};
     const verbs = [...VERBS, 'comm'];
     verbs.forEach((v, i) => {
       const label = v === 'comm' ? 'COMM' : v.toUpperCase();
-      const b = button(this, 10 + (i % 3) * 84, UI_Y + 12 + Math.floor(i / 3) * 32, 80, 26, label, () => {
+      const b = button(this, 10 + (i % 3) * 84, UI_Y + 6 + Math.floor(i / 3) * 32, 80, 28, label, () => {
         if (v === 'comm') return this.communicator();
         this.setMode({ verb: v });
       }).setDepth(D);
       this.verbBtns[v] = b;
     });
+
+    // reveal every hotspot: discoverability without hover (and handy anywhere)
+    button(this, 10, UI_Y + 70, 248, 26, 'SHOW HOTSPOTS', () => this.revealHotspots()).setDepth(D);
 
     // crew specialists
     this.crewBtns = {};
@@ -437,7 +444,28 @@ export default class AwayScene extends Phaser.Scene {
 
   setHover(str) {
     this.hoverLabel.setText(str);
-    this.hoverBg.setSize(str ? this.hoverLabel.width + 12 : 0, 14);
+    this.hoverBg.setSize(str ? this.hoverLabel.width + 12 : 0, this.hoverBg.height);
+  }
+
+  /** Briefly outline and name every interactive thing in the room. */
+  revealHotspots() {
+    if (this.busy || this.halted) return;
+    this.revealLayer?.destroy();
+    const c = this.add.container(0, 0).setDepth(7000);
+    this.revealLayer = c;
+    for (const ho of this.hotspotObjs.values()) {
+      if (!ho.visible) continue;
+      const [x, y, w, h] = ho.rect.map((v) => v * ART);
+      const col = ho.def.exit ? 0x60e070 : 0xffd860;
+      c.add(this.add.rectangle(x, y, w, h).setOrigin(0).setStrokeStyle(2, col, 0.9));
+      const label = (ho.def.exit ? '> ' : '') + ho.def.name;
+      const ty = Math.max(2, y - 11);
+      const t = text(this, 0, ty, label, col).setOrigin(0.5, 0);
+      t.setX(Phaser.Math.Clamp(x + w / 2, t.width / 2 + 4, WIDTH - t.width / 2 - 4));
+      c.add(this.add.rectangle(t.x, ty - 1, t.width + 6, 10, 0x000000, 0.7).setOrigin(0.5, 0));
+      c.add(t);
+    }
+    this.tweens.add({ targets: c, alpha: 0, delay: 2600, duration: 500, onComplete: () => c.destroy() });
   }
 
   onMove(p) {
@@ -452,6 +480,12 @@ export default class AwayScene extends Phaser.Scene {
 
   onClick(p) {
     if (p.y >= UI_Y || this.busy || this.halted) return;
+    // no hover on touch screens: show what was tapped, and mark the spot
+    this.onMove(p);
+    if (p.wasTouch) {
+      const ring = this.add.circle(p.x, p.y, 6).setStrokeStyle(2, COLORS.highlight).setDepth(6500);
+      this.tweens.add({ targets: ring, radius: 14, alpha: 0, duration: 350, onComplete: () => ring.destroy() });
+    }
     if (p.rightButtonDown()) {
       // cycle verbs (and drop any held item / crew selection)
       const i = this.mode.verb ? VERBS.indexOf(this.mode.verb) : -1;

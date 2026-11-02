@@ -9,6 +9,7 @@ import { loadMissionSave } from '../engine/state.js';
 import { getMission } from '../engine/missions.js';
 import { SHIP } from '../cast/crew.js';
 import { setMuted, isMuted, sfx } from '../engine/audio.js';
+import { prefs, IS_TOUCH } from '../engine/device.js';
 
 export default class TitleScene extends Phaser.Scene {
   constructor() { super('Title'); }
@@ -26,22 +27,35 @@ export default class TitleScene extends Phaser.Scene {
     text(this, WIDTH / 2, 114, SHIP.service.toUpperCase(), COLORS.dim).setOrigin(0.5);
     this.tweens.add({ targets: title, alpha: 0.75, yoyo: true, repeat: -1, duration: 1600 });
 
-    let y = 200;
+    let y = 150;
+    const B = (label, fn) => { const b = button(this, WIDTH / 2 - 140, y, 280, 32, label, fn); y += 40; return b; };
     const save = loadMissionSave();
     if (save && getMission(save.missionId)) {
       const m = getMission(save.missionId);
-      button(this, WIDTH / 2 - 130, y, 260, 26, `CONTINUE: ${m.title.toUpperCase()}`.slice(0, 30), () => Director.startMission(save.missionId, save));
-      y += 36;
+      B(`CONTINUE: ${m.title.toUpperCase()}`.slice(0, 30), () => Director.startMission(save.missionId, save));
     }
-    button(this, WIDTH / 2 - 130, y, 260, 26, 'MISSION SELECT', () => this.scene.start('MissionSelect'));
-    y += 36;
-    const snd = button(this, WIDTH / 2 - 130, y, 260, 26, `SOUND: ${isMuted() ? 'OFF' : 'ON'}`, () => {
+    B('MISSION SELECT', () => this.scene.start('MissionSelect'));
+    const snd = B(`SOUND: ${isMuted() ? 'OFF' : 'ON'}`, () => {
       setMuted(!isMuted());
       Director.profile.settings.muted = isMuted(); Director.profile.save();
       snd.setLabel(`SOUND: ${isMuted() ? 'OFF' : 'ON'}`);
       sfx('chirp');
     });
-    text(this, WIDTH / 2, HEIGHT - 16, 'CLICK TO INTERACT  -  RIGHT-CLICK CYCLES VERBS IN AWAY MISSIONS', COLORS.dim).setOrigin(0.5);
+    const txt = B(`TEXT SIZE: ${prefs.largeText ? 'LARGE' : 'NORMAL'}`, () => {
+      prefs.largeText = !prefs.largeText;
+      Director.profile.settings.largeText = prefs.largeText; Director.profile.save();
+      txt.setLabel(`TEXT SIZE: ${prefs.largeText ? 'LARGE' : 'NORMAL'}`);
+    });
+    if (this.scale.fullscreen.available) {
+      const fs = B(this.scale.isFullscreen ? 'EXIT FULLSCREEN' : 'FULLSCREEN', () => {
+        if (this.scale.isFullscreen) { this.scale.stopFullscreen(); fs.setLabel('FULLSCREEN'); return; }
+        this.scale.startFullscreen();
+        try { screen.orientation?.lock?.('landscape').catch(() => {}); } catch { /* unsupported */ }
+        fs.setLabel('EXIT FULLSCREEN');
+      });
+    }
+    const hint = IS_TOUCH ? 'TAP TO INTERACT - BEST PLAYED IN LANDSCAPE' : 'CLICK TO INTERACT  -  RIGHT-CLICK CYCLES VERBS IN AWAY MISSIONS';
+    text(this, WIDTH / 2, HEIGHT - 16, hint, COLORS.dim).setOrigin(0.5);
   }
   update(t, dt) { this.stars.update(dt / 1000); }
 }

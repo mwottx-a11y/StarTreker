@@ -2,6 +2,7 @@ import { COLORS, WIDTH, FONT } from './constants.js';
 import { text } from './font.js';
 import { makePortrait, makeTexture } from './pixel.js';
 import { sfx } from './audio.js';
+import { prefs } from './device.js';
 
 /** Bevelled panel in the style of early-90s adventure UIs. */
 export function panel(scene, x, y, w, h, opts = {}) {
@@ -90,18 +91,21 @@ export class DialogBox {
   _frame(h) {
     this.clear();
     const s = this.scene;
+    // keep the box on-screen even when large text makes it tall
+    const y = Math.max(4, Math.min(this.y, s.scale.height - h - 4));
+    this.top = y;
     const c = s.add.container(0, 0).setDepth(this.depth);
     // full-screen click catcher so clicks don't fall through to the room
     const blocker = s.add.rectangle(0, 0, WIDTH, s.scale.height, 0x000000, 0.001).setOrigin(0).setInteractive();
     c.add(blocker);
-    c.add(panel(s, 8, this.y, WIDTH - 16, h));
+    c.add(panel(s, 8, y, WIDTH - 16, h));
     this.container = c;
-    return { c, blocker };
+    return { c, blocker, y };
   }
 
   say(speakerId, str) {
     return this._enqueue(async () => {
-      for (const page of paginate(str, 330)) await this._sayPage(speakerId, page);
+      for (const page of paginate(str, prefs.largeText ? 150 : 330)) await this._sayPage(speakerId, page);
       this.clear();
     });
   }
@@ -109,17 +113,24 @@ export class DialogBox {
   _sayPage(speakerId, str) {
     const s = this.scene;
     const def = speakerId ? this.characters[speakerId] : null;
-    const H = 100;
-    const { c, blocker } = this._frame(H);
-    let tx = 20;
+    const size = prefs.largeText ? 16 : 8;
+    const key = def ? (def.portrait === false ? computerPortrait(s) : portraitKey(s, speakerId, def)) : null;
+    const tx = key ? 108 : 20;
+    const bodyY = def ? 30 : 16;
+    // measure the full text first so the box fits it
+    const probe = text(s, 0, -2000, str, COLORS.text, WIDTH - tx - 28).setFontSize(size);
+    const textH = probe.getTextBounds().local.height;
+    probe.destroy();
+    const H = Math.max(100, bodyY + textH + 26);
+    const { c, blocker, y } = this._frame(H);
     if (def) {
-      const key = def.portrait === false ? computerPortrait(s) : portraitKey(s, speakerId, def);
-      if (key) { c.add(s.add.image(18, this.y + 10, key).setOrigin(0).setScale(2)); tx = 108; }
-      c.add(text(s, tx, this.y + 12, (def.name || speakerId).toUpperCase(), def.color ?? COLORS.highlight));
+      if (key) c.add(s.add.image(18, y + 10, key).setOrigin(0).setScale(2));
+      c.add(text(s, tx, y + 12, (def.name || speakerId).toUpperCase(), def.color ?? COLORS.highlight));
     }
-    const body = text(s, tx, this.y + (def ? 28 : 16), '', def ? COLORS.text : 0xb8c8e8, WIDTH - tx - 28);
+    const body = text(s, tx, y + bodyY, '', def ? COLORS.text : 0xb8c8e8, WIDTH - tx - 28).setFontSize(size);
     c.add(body);
-    const more = text(s, WIDTH - 30, this.y + H - 16, '>', COLORS.highlight);
+    const more = text(s, WIDTH - 30, y + H - 16, '>', COLORS.highlight).setFontSize(size === 16 ? 16 : 8);
+    if (size === 16) more.setY(y + H - 22);
     more.setVisible(false); c.add(more);
     if (!def) sfx('blip');
 
@@ -150,30 +161,35 @@ export class DialogBox {
 
   _choose(options, speakerId) {
     const s = this.scene;
-    const lineH = 12;
-    // measure wrapped heights
     const maxW = WIDTH - 72;
-    const measured = options.map((o, i) => {
-      const t = text(s, 0, -1000, `${i + 1}. ${o}`, COLORS.text, maxW);
-      const h = t.getTextBounds().local.height;
-      t.destroy();
-      return Math.max(lineH, h + 4);
-    });
-    const H = 30 + measured.reduce((a, b) => a + b + 4, 0);
-    const { c } = this._frame(H);
+    const layout = (size) => {
+      const minH = size === 16 ? 28 : 16; // finger-sized rows when large
+      const heights = options.map((o, i) => {
+        const t = text(s, 0, -2000, `${i + 1}. ${o}`, COLORS.text, maxW).setFontSize(size);
+        const h = t.getTextBounds().local.height;
+        t.destroy();
+        return Math.max(minH, h + 6);
+      });
+      return { size, heights, H: 30 + heights.reduce((a, b) => a + b + 4, 0) };
+    };
+    // large text if it fits on screen, otherwise fall back to the small font
+    let L = layout(prefs.largeText ? 16 : 8);
+    if (L.H > s.scale.height - 8 && L.size === 16) L = layout(8);
+    const { c, y: top } = this._frame(L.H);
     const def = this.characters[speakerId];
-    c.add(text(s, 22, this.y + 10, (def?.short || 'You').toUpperCase() + ':', def?.color ?? COLORS.highlight));
+    c.add(text(s, 22, top + 10, (def?.short || 'You').toUpperCase() + ':', def?.color ?? COLORS.highlight));
     return new Promise((resolve) => {
-      let y = this.y + 26;
+      let y = top + 26;
       const pick = (i) => { sfx('select'); s.input.keyboard?.off('keydown', onKey); this.clear(); resolve(i); };
       options.forEach((o, i) => {
-        const t = text(s, 36, y, `${i + 1}. ${o}`, COLORS.text, maxW);
-        const hit = s.add.rectangle(30, y - 2, WIDTH - 60, measured[i] + 2, 0xffffff, 0.001).setOrigin(0).setInteractive({ useHandCursor: true });
+        const t = text(s, 36, y + 2, `${i + 1}. ${o}`, COLORS.text, maxW).setFontSize(L.size);
+        const hit = s.add.rectangle(16, y - 1, WIDTH - 32, L.heights[i] + 3, 0xffffff, 0.001).setOrigin(0).setInteractive({ useHandCursor: true });
+        const sep = s.add.rectangle(30, y + L.heights[i] + 1, WIDTH - 60, 1, 0x2a3a5a).setOrigin(0);
         hit.on('pointerover', () => t.setTint(COLORS.highlight));
         hit.on('pointerout', () => t.setTint(COLORS.text));
         hit.on('pointerdown', () => pick(i));
-        c.add([t, hit]);
-        y += measured[i] + 4;
+        c.add([sep, t, hit]);
+        y += L.heights[i] + 4;
       });
       const onKey = (e) => { const n = parseInt(e.key, 10); if (n >= 1 && n <= options.length) pick(n - 1); };
       s.input.keyboard?.on('keydown', onKey);

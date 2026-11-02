@@ -63,6 +63,14 @@ verbs; the keys are W/L/U/T/G.
 - **Hail** tries to talk. **Retreat** warps out.
 - Enemies may surrender when damaged. What you do next matters.
 
+**On phones and tablets:** play in landscape (portrait shows a rotate prompt). Text defaults to large on
+touch devices; you can toggle it on the title screen.
+- Tap things directly. The label at the bottom of the room shows what you tapped.
+- **SHOW HOTSPOTS** outlines everything you can interact with.
+- In combat, tap to fire phasers at a point, and hold and drag to steer. Releasing your finger stops the
+  turn. Torpedoes have their own button.
+- Use **FULLSCREEN** on Android, or "Add to Home Screen" on iOS, to hide the browser bars.
+
 **Scoring:** every mission ends with a Concord Command evaluation. Points come from diplomacy, investigation,
 keeping your people safe, and keeping your word, not from body count. Your results, and certain choices,
 persist in your profile and can change later episodes.

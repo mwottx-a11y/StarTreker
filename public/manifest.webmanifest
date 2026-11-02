@@ -1,0 +1,9 @@
+{
+  "name": "Star Treker: Voyages of the Meridian",
+  "short_name": "Star Treker",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#000000",
+  "theme_color": "#000000"
+}

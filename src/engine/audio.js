@@ -19,6 +19,15 @@ function ac() {
   return ctx;
 }
 
+/** Call from a user gesture: iOS/Android only allow audio after one. */
+export function unlockAudio() {
+  const c = ac();
+  if (!c) return;
+  // play one silent sample - required by older iOS Safari
+  const b = c.createBuffer(1, 1, 22050);
+  const src = c.createBufferSource(); src.buffer = b; src.connect(c.destination); src.start(0);
+}
+
 export function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : 0.35; }
 export function isMuted() { return muted; }
 

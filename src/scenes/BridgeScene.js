@@ -110,7 +110,7 @@ export default class BridgeScene extends Phaser.Scene {
       ['ENGINEERING', 'engineering'], ['TRANSPORTER', 'transporter'], ['MISSION LOG', 'log'], ['MENU', 'menu'],
     ];
     btns.forEach(([label, id], i) => {
-      button(this, 12 + (i % 4) * 156, 330 + Math.floor(i / 4) * 32, 148, 26, label, () => this.station(id));
+      button(this, 12 + (i % 4) * 156, 326 + Math.floor(i / 4) * 36, 148, 32, label, () => this.station(id));
     });
 
     this.statusText = text(this, WIDTH / 2, 156, '', COLORS.dim).setOrigin(0.5, 0).setDepth(5);
@@ -279,7 +279,7 @@ export default class BridgeScene extends Phaser.Scene {
     this.busy++;
     const c = this.add.container(0, 0).setDepth(900);
     c.add(this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x000000, 0.6).setOrigin(0).setInteractive());
-    c.add(panel(this, 40, 20, WIDTH - 80, 300));
+    c.add(panel(this, 40, 20, WIDTH - 80, 362));
     c.add(text(this, 60, 34, 'STELLAR CARTOGRAPHY - SELECT DESTINATION', COLORS.lcars1));
     const g = this.add.graphics(); c.add(g);
     const systems = Object.entries(m.starmap.systems).filter(([id, sy]) => !sy.hidden || s.unlocked.includes(id));
@@ -289,9 +289,17 @@ export default class BridgeScene extends Phaser.Scene {
     for (let x = 60; x < WIDTH - 60; x += 32) g.lineBetween(x, 50, x, 300);
     for (let y = 50; y < 300; y += 32) g.lineBetween(60, y, WIDTH - 60, y);
     const cur = m.starmap.systems[s.system];
-    let info = text(this, 60, 290, 'Click a system to set course.', COLORS.dim, WIDTH - 120);
+    // Two-step selection: tap a system to read about it, then ENGAGE.
+    // (Instant warp-on-tap gave touch players no way to see descriptions.)
+    const info = text(this, 60, 300, 'Select a system.', COLORS.dim, WIDTH - 280);
     c.add(info);
+    const sel = this.add.graphics(); c.add(sel);
+    let chosen = null;
     const close = () => { c.destroy(); this.busy--; };
+    const engage = button(this, WIDTH - 196, 330, 136, 36, 'ENGAGE', async () => {
+      if (!chosen) return;
+      const id = chosen; close(); await this.warpTo(id);
+    }, { color: 0x60e070 }).setEnabled(false);
     for (const [id, sy] of systems) {
       const [x, y] = toScreen(sy);
       const locked = sy.locked && !s.unlocked.includes(id);
@@ -299,19 +307,19 @@ export default class BridgeScene extends Phaser.Scene {
       g.fillStyle(locked ? 0x404858 : (sy.color ? parseInt(sy.color.slice(1), 16) : 0xf0d070)).fillCircle(x, y, here ? 6 : 4);
       if (here) g.lineStyle(2, 0x60e070).strokeCircle(x, y, 10);
       c.add(text(this, x + 10, y - 4, sy.name.toUpperCase(), locked ? COLORS.dim : COLORS.text));
-      const z = this.add.zone(x - 14, y - 14, 28, 28).setOrigin(0).setInteractive({ useHandCursor: true });
-      z.on('pointerover', () => info.setText(`${sy.name}: ${locked ? 'Uncharted. No reason to go there yet.' : sy.desc || ''}`));
-      z.on('pointerdown', async () => {
-        if (locked) { sfx('deny'); return; }
-        if (here) { sfx('deny'); info.setText('We are already here.'); return; }
-        close();
-        await this.warpTo(id);
+      const z = this.add.zone(x - 20, y - 20, 40, 40).setOrigin(0).setInteractive({ useHandCursor: true });
+      z.on('pointerdown', () => {
+        sel.clear().lineStyle(2, 0xffd860).strokeCircle(x, y, 14);
+        if (locked) { sfx('deny'); chosen = null; engage.setEnabled(false); info.setText(`${sy.name}: Uncharted. No reason to go there yet.`); return; }
+        if (here) { chosen = null; engage.setEnabled(false); info.setText(`${sy.name}: We are already here. ${sy.desc || ''}`); return; }
+        sfx('blip');
+        chosen = id; engage.setEnabled(true);
+        info.setText(`${sy.name}: ${sy.desc || ''}`);
       });
       c.add(z);
     }
-    if (cur) { const [x, y] = toScreen(cur); g.lineStyle(1, 0x60e070, 0.6); }
-    const b = button(this, WIDTH - 160, 30, 100, 18, 'CANCEL', close);
-    c.add(b);
+    c.add(engage);
+    c.add(button(this, WIDTH - 176, 28, 116, 26, 'CANCEL', close));
   }
 
   async warpTo(id) {

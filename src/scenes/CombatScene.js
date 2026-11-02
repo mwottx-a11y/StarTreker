@@ -6,6 +6,7 @@ import { WIDTH, HEIGHT, COLORS } from '../engine/constants.js';
 import { Director } from '../engine/director.js';
 import { Halt } from '../engine/script.js';
 import { sfx, startDrone } from '../engine/audio.js';
+import { IS_TOUCH } from '../engine/device.js';
 
 const VIEW_H = 320;
 const CX = WIDTH / 2, CY = VIEW_H / 2;
@@ -66,11 +67,16 @@ export default class CombatScene extends Phaser.Scene {
     // crosshair
     this.cross = this.add.graphics().setDepth(30);
     this.aim = { x: CX, y: CY };
-    this.input.on('pointermove', (p) => { if (p.y < VIEW_H) { this.aim.x = p.x; this.aim.y = p.y; } });
+    this.input.on('pointermove', (p) => { if (p.y < VIEW_H && (!p.wasTouch || p.isDown)) { this.aim.x = p.x; this.aim.y = p.y; } });
     this.input.on('pointerdown', (p) => {
       if (this.paused || this.over || p.y >= VIEW_H) return;
+      // aim where the pointer is *now* (a touch has no prior hover position)
+      this.aim.x = p.x; this.aim.y = p.y;
       if (p.rightButtonDown()) this.fireTorpedo(); else this.firePhaser();
     });
+    // Touch: steering lasts while the finger is down; lifting it re-centres
+    // the crosshair so the ship stops turning.
+    this.input.on('pointerup', (p) => { if (p.wasTouch) { this.aim.x = CX; this.aim.y = CY; } });
     this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE,T');
     this.input.keyboard.on('keydown-SPACE', () => { if (!this.paused && !this.over) this.firePhaser(); });
     this.input.keyboard.on('keydown-T', () => { if (!this.paused && !this.over) this.fireTorpedo(); });
@@ -94,9 +100,11 @@ export default class CombatScene extends Phaser.Scene {
     this.hudText = text(this, 12, VIEW_H + 10, '', COLORS.text).setDepth(D);
     this.enemyText = text(this, 330, VIEW_H + 10, '', COLORS.alert).setDepth(D);
     this.radar = this.add.graphics().setDepth(D);
-    button(this, 12, HEIGHT - 32, 100, 24, 'HAIL', () => this.hail()).setDepth(D);
-    button(this, 120, HEIGHT - 32, 110, 24, 'RETREAT', () => this.retreat()).setDepth(D);
-    text(this, 240, HEIGHT - 24, 'L-CLICK PHASERS  R-CLICK/T TORPEDO', COLORS.dim).setDepth(D);
+    button(this, 12, HEIGHT - 36, 96, 30, 'HAIL', () => this.hail()).setDepth(D);
+    button(this, 114, HEIGHT - 36, 110, 30, 'RETREAT', () => this.retreat()).setDepth(D);
+    button(this, 230, HEIGHT - 36, 120, 30, 'TORPEDO', () => { if (!this.paused && !this.over) this.fireTorpedo(); }, { color: 0xffb070 }).setDepth(D);
+    const help = IS_TOUCH ? 'TAP: FIRE PHASERS\nHOLD+DRAG: STEER' : 'CLICK/SPACE: PHASERS\nR-CLICK/T: TORPEDO';
+    text(this, 358, HEIGHT - 32, help, COLORS.dim).setDepth(D);
   }
 
   // ---------------------------------------------------------------- weapons

@@ -20,17 +20,17 @@ export default class MissionSelectScene extends Phaser.Scene {
       const done = prof.completed[m.id];
       const locked = (m.requires || []).some((r) => !prof.completed[r]);
       const label = `EP ${String(m.episode ?? '?').padStart(2, '0')}  ${m.title.toUpperCase()}`;
-      const b = button(this, 20, y, 280, 24, label.slice(0, 32), () => this.show(m, locked));
+      const b = button(this, 20, y, 280, 30, label.slice(0, 32), () => this.show(m, locked));
       b.label.setOrigin(0, 0.5).setX(10);
       if (locked) b.label.setTint(COLORS.dim);
-      if (done) text(this, 306, y + 8, `${done.percent}%`, COLORS.good);
-      y += 30;
+      if (done) text(this, 306, y + 11, `${done.percent}%`, COLORS.good);
+      y += 36;
     });
     const probs = loadProblems();
     if (probs.length) {
       text(this, 20, HEIGHT - 70, `${probs.length} mission file(s) failed validation - see console.`, COLORS.alert, 280);
     }
-    button(this, 20, HEIGHT - 40, 120, 24, 'BACK', () => this.scene.start('Title'));
+    button(this, 20, HEIGHT - 42, 120, 30, 'BACK', () => this.scene.start('Title'));
     if (missions[0]) this.show(missions[0], (missions[0].requires || []).some((r) => !prof.completed[r]));
   }
 
@@ -48,7 +48,7 @@ export default class MissionSelectScene extends Phaser.Scene {
     if (locked) {
       c.add(text(this, 356, 344, 'LOCKED: COMPLETE EARLIER MISSIONS FIRST', COLORS.alert, 256));
     } else {
-      c.add(button(this, 400, 344, 170, 26, 'BEGIN MISSION', () => Director.startMission(m.id)));
+      c.add(button(this, 390, 340, 190, 32, 'BEGIN MISSION', () => Director.startMission(m.id)));
     }
   }
   update(t, dt) { this.stars.update(dt / 1000); }
